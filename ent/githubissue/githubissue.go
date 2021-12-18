@@ -11,6 +11,8 @@ const (
 	Label = "git_hub_issue"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldGithubID holds the string denoting the github_id field in the database.
+	FieldGithubID = "github_id"
 	// FieldNumber holds the string denoting the number field in the database.
 	FieldNumber = "number"
 	// FieldTitle holds the string denoting the title field in the database.
@@ -35,9 +37,23 @@ const (
 	FieldClosedAt = "closed_at"
 	// FieldAuthorAssociation holds the string denoting the author_association field in the database.
 	FieldAuthorAssociation = "author_association"
+	// EdgeAssignee holds the string denoting the assignee edge name in mutations.
+	EdgeAssignee = "assignee"
+	// EdgeAuthor holds the string denoting the author edge name in mutations.
+	EdgeAuthor = "author"
+	// EdgeClosedBy holds the string denoting the closed_by edge name in mutations.
+	EdgeClosedBy = "closed_by"
+	// AssigneeLabel holds the string label denoting the assignee edge type in the database.
+	AssigneeLabel = "git_hub_issue_assignee"
+	// AuthorInverseLabel holds the string label denoting the author inverse edge type in the database.
+	AuthorInverseLabel = "git_hub_user_created_issues"
+	// ClosedByInverseLabel holds the string label denoting the closed_by inverse edge type in the database.
+	ClosedByInverseLabel = "git_hub_user_closed_issues"
 )
 
 var (
+	// GithubIDValidator is a validator for the "github_id" field. It is called by the builders before save.
+	GithubIDValidator func(int) error
 	// NumberValidator is a validator for the "number" field. It is called by the builders before save.
 	NumberValidator func(int) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
@@ -53,7 +69,7 @@ var (
 	// ClosedAtValidator is a validator for the "closed_at" field. It is called by the builders before save.
 	ClosedAtValidator func(string) error
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
+	IDValidator func(string) error
 )
 
 // State defines the type for the "state" enum field.

@@ -40,23 +40,29 @@ func (pc *PersonCreate) SetIsGiantSwarmEmployee(b bool) *PersonCreate {
 	return pc
 }
 
-// SetGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by ID.
-func (pc *PersonCreate) SetGitHubAccountID(id int) *PersonCreate {
-	pc.mutation.SetGitHubAccountID(id)
+// SetID sets the "id" field.
+func (pc *PersonCreate) SetID(s string) *PersonCreate {
+	pc.mutation.SetID(s)
 	return pc
 }
 
-// SetNillableGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by ID if the given value is not nil.
-func (pc *PersonCreate) SetNillableGitHubAccountID(id *int) *PersonCreate {
+// SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID.
+func (pc *PersonCreate) SetGithubAccountID(id string) *PersonCreate {
+	pc.mutation.SetGithubAccountID(id)
+	return pc
+}
+
+// SetNillableGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID if the given value is not nil.
+func (pc *PersonCreate) SetNillableGithubAccountID(id *string) *PersonCreate {
 	if id != nil {
-		pc = pc.SetGitHubAccountID(*id)
+		pc = pc.SetGithubAccountID(*id)
 	}
 	return pc
 }
 
-// SetGitHubAccount sets the "gitHubAccount" edge to the GitHubUser entity.
-func (pc *PersonCreate) SetGitHubAccount(g *GitHubUser) *PersonCreate {
-	return pc.SetGitHubAccountID(g.ID)
+// SetGithubAccount sets the "github_account" edge to the GitHubUser entity.
+func (pc *PersonCreate) SetGithubAccount(g *GitHubUser) *PersonCreate {
+	return pc.SetGithubAccountID(g.ID)
 }
 
 // Mutation returns the PersonMutation object of the builder.
@@ -162,8 +168,11 @@ func (pc *PersonCreate) gremlin() *dsl.Traversal {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
 	}
-	constraints := make([]*constraint, 0, 1)
+	constraints := make([]*constraint, 0, 2)
 	v := g.AddV(person.Label)
+	if id, ok := pc.mutation.ID(); ok {
+		v.Property(dsl.ID, id)
+	}
 	if value, ok := pc.mutation.Email(); ok {
 		constraints = append(constraints, &constraint{
 			pred: g.V().Has(person.Label, person.FieldEmail, value).Count(),
@@ -177,8 +186,12 @@ func (pc *PersonCreate) gremlin() *dsl.Traversal {
 	if value, ok := pc.mutation.IsGiantSwarmEmployee(); ok {
 		v.Property(dsl.Single, person.FieldIsGiantSwarmEmployee, value)
 	}
-	for _, id := range pc.mutation.GitHubAccountIDs() {
-		v.AddE(person.GitHubAccountLabel).To(g.V(id)).OutV()
+	for _, id := range pc.mutation.GithubAccountIDs() {
+		v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, id)),
+		})
 	}
 	if len(constraints) == 0 {
 		return v.ValueMap(true)

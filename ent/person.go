@@ -14,7 +14,7 @@ import (
 type Person struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Name holds the value of the "name" field.
@@ -28,25 +28,25 @@ type Person struct {
 
 // PersonEdges holds the relations/edges for other nodes in the graph.
 type PersonEdges struct {
-	// GitHubAccount holds the value of the gitHubAccount edge.
-	GitHubAccount *GitHubUser `json:"gitHubAccount,omitempty"`
+	// GithubAccount holds the value of the github_account edge.
+	GithubAccount *GitHubUser `json:"github_account,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// GitHubAccountOrErr returns the GitHubAccount value or an error if the edge
+// GithubAccountOrErr returns the GithubAccount value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PersonEdges) GitHubAccountOrErr() (*GitHubUser, error) {
+func (e PersonEdges) GithubAccountOrErr() (*GitHubUser, error) {
 	if e.loadedTypes[0] {
-		if e.GitHubAccount == nil {
-			// The edge gitHubAccount was loaded in eager-loading,
+		if e.GithubAccount == nil {
+			// The edge github_account was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: githubuser.Label}
 		}
-		return e.GitHubAccount, nil
+		return e.GithubAccount, nil
 	}
-	return nil, &NotLoadedError{edge: "gitHubAccount"}
+	return nil, &NotLoadedError{edge: "github_account"}
 }
 
 // FromResponse scans the gremlin response data into Person.
@@ -56,7 +56,7 @@ func (pe *Person) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanpe struct {
-		ID                   int    `json:"id,omitempty"`
+		ID                   string `json:"id,omitempty"`
 		Email                string `json:"email,omitempty"`
 		Name                 string `json:"name,omitempty"`
 		IsGiantSwarmEmployee bool   `json:"is_giant_swarm_employee,omitempty"`
@@ -71,9 +71,9 @@ func (pe *Person) FromResponse(res *gremlin.Response) error {
 	return nil
 }
 
-// QueryGitHubAccount queries the "gitHubAccount" edge of the Person entity.
-func (pe *Person) QueryGitHubAccount() *GitHubUserQuery {
-	return (&PersonClient{config: pe.config}).QueryGitHubAccount(pe)
+// QueryGithubAccount queries the "github_account" edge of the Person entity.
+func (pe *Person) QueryGithubAccount() *GitHubUserQuery {
+	return (&PersonClient{config: pe.config}).QueryGithubAccount(pe)
 }
 
 // Update returns a builder for updating this Person.
@@ -119,7 +119,7 @@ func (pe *Persons) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanpe []struct {
-		ID                   int    `json:"id,omitempty"`
+		ID                   string `json:"id,omitempty"`
 		Email                string `json:"email,omitempty"`
 		Name                 string `json:"name,omitempty"`
 		IsGiantSwarmEmployee bool   `json:"is_giant_swarm_employee,omitempty"`

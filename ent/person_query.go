@@ -26,7 +26,7 @@ type PersonQuery struct {
 	fields     []string
 	predicates []predicate.Person
 	// eager-loading edges.
-	withGitHubAccount *GitHubUserQuery
+	withGithubAccount *GitHubUserQuery
 	// intermediate query (i.e. traversal path).
 	gremlin *dsl.Traversal
 	path    func(context.Context) (*dsl.Traversal, error)
@@ -63,15 +63,15 @@ func (pq *PersonQuery) Order(o ...OrderFunc) *PersonQuery {
 	return pq
 }
 
-// QueryGitHubAccount chains the current query on the "gitHubAccount" edge.
-func (pq *PersonQuery) QueryGitHubAccount() *GitHubUserQuery {
+// QueryGithubAccount chains the current query on the "github_account" edge.
+func (pq *PersonQuery) QueryGithubAccount() *GitHubUserQuery {
 	query := &GitHubUserQuery{config: pq.config}
 	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		gremlin := pq.gremlinQuery(ctx)
-		fromU = gremlin.OutE(person.GitHubAccountLabel).InV()
+		fromU = gremlin.OutE(person.GithubAccountLabel).InV()
 		return fromU, nil
 	}
 	return query
@@ -101,8 +101,8 @@ func (pq *PersonQuery) FirstX(ctx context.Context) *Person {
 
 // FirstID returns the first Person ID from the query.
 // Returns a *NotFoundError when no Person ID was found.
-func (pq *PersonQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (pq *PersonQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -114,7 +114,7 @@ func (pq *PersonQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (pq *PersonQuery) FirstIDX(ctx context.Context) int {
+func (pq *PersonQuery) FirstIDX(ctx context.Context) string {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -152,8 +152,8 @@ func (pq *PersonQuery) OnlyX(ctx context.Context) *Person {
 // OnlyID is like Only, but returns the only Person ID in the query.
 // Returns a *NotSingularError when exactly one Person ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (pq *PersonQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (pq *PersonQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = pq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -169,7 +169,7 @@ func (pq *PersonQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (pq *PersonQuery) OnlyIDX(ctx context.Context) int {
+func (pq *PersonQuery) OnlyIDX(ctx context.Context) string {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -195,8 +195,8 @@ func (pq *PersonQuery) AllX(ctx context.Context) []*Person {
 }
 
 // IDs executes the query and returns a list of Person IDs.
-func (pq *PersonQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (pq *PersonQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := pq.Select(person.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (pq *PersonQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *PersonQuery) IDsX(ctx context.Context) []int {
+func (pq *PersonQuery) IDsX(ctx context.Context) []string {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -258,21 +258,21 @@ func (pq *PersonQuery) Clone() *PersonQuery {
 		offset:            pq.offset,
 		order:             append([]OrderFunc{}, pq.order...),
 		predicates:        append([]predicate.Person{}, pq.predicates...),
-		withGitHubAccount: pq.withGitHubAccount.Clone(),
+		withGithubAccount: pq.withGithubAccount.Clone(),
 		// clone intermediate query.
 		gremlin: pq.gremlin.Clone(),
 		path:    pq.path,
 	}
 }
 
-// WithGitHubAccount tells the query-builder to eager-load the nodes that are connected to
-// the "gitHubAccount" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *PersonQuery) WithGitHubAccount(opts ...func(*GitHubUserQuery)) *PersonQuery {
+// WithGithubAccount tells the query-builder to eager-load the nodes that are connected to
+// the "github_account" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PersonQuery) WithGithubAccount(opts ...func(*GitHubUserQuery)) *PersonQuery {
 	query := &GitHubUserQuery{config: pq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withGitHubAccount = query
+	pq.withGithubAccount = query
 	return pq
 }
 

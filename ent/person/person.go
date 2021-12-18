@@ -13,8 +13,8 @@ const (
 	FieldName = "name"
 	// FieldIsGiantSwarmEmployee holds the string denoting the isgiantswarmemployee field in the database.
 	FieldIsGiantSwarmEmployee = "is_giant_swarm_employee"
-	// EdgeGitHubAccount holds the string denoting the githubaccount edge name in mutations.
-	EdgeGitHubAccount = "gitHubAccount"
-	// GitHubAccountLabel holds the string label denoting the githubaccount edge type in the database.
-	GitHubAccountLabel = "person_git_hub_account"
+	// EdgeGithubAccount holds the string denoting the github_account edge name in mutations.
+	EdgeGithubAccount = "github_account"
+	// GithubAccountLabel holds the string label denoting the github_account edge type in the database.
+	GithubAccountLabel = "person_github_account"
 )

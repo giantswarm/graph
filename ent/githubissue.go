@@ -8,13 +8,16 @@ import (
 
 	"entgo.io/ent/dialect/gremlin"
 	"github.com/giantswarm/graph/ent/githubissue"
+	"github.com/giantswarm/graph/ent/githubuser"
 )
 
 // GitHubIssue is the model entity for the GitHubIssue schema.
 type GitHubIssue struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
+	// GithubID holds the value of the "github_id" field.
+	GithubID int `json:"github_id,omitempty"`
 	// Number holds the value of the "number" field.
 	Number int `json:"number,omitempty"`
 	// Title holds the value of the "title" field.
@@ -39,6 +42,59 @@ type GitHubIssue struct {
 	ClosedAt string `json:"closed_at,omitempty"`
 	// AuthorAssociation holds the value of the "author_association" field.
 	AuthorAssociation string `json:"author_association,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the GitHubIssueQuery when eager-loading is set.
+	Edges GitHubIssueEdges `json:"edges"`
+}
+
+// GitHubIssueEdges holds the relations/edges for other nodes in the graph.
+type GitHubIssueEdges struct {
+	// Assignee holds the value of the assignee edge.
+	Assignee []*GitHubUser `json:"assignee,omitempty"`
+	// Author holds the value of the author edge.
+	Author *GitHubUser `json:"author,omitempty"`
+	// ClosedBy holds the value of the closed_by edge.
+	ClosedBy *GitHubUser `json:"closed_by,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// AssigneeOrErr returns the Assignee value or an error if the edge
+// was not loaded in eager-loading.
+func (e GitHubIssueEdges) AssigneeOrErr() ([]*GitHubUser, error) {
+	if e.loadedTypes[0] {
+		return e.Assignee, nil
+	}
+	return nil, &NotLoadedError{edge: "assignee"}
+}
+
+// AuthorOrErr returns the Author value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GitHubIssueEdges) AuthorOrErr() (*GitHubUser, error) {
+	if e.loadedTypes[1] {
+		if e.Author == nil {
+			// The edge author was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: githubuser.Label}
+		}
+		return e.Author, nil
+	}
+	return nil, &NotLoadedError{edge: "author"}
+}
+
+// ClosedByOrErr returns the ClosedBy value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GitHubIssueEdges) ClosedByOrErr() (*GitHubUser, error) {
+	if e.loadedTypes[2] {
+		if e.ClosedBy == nil {
+			// The edge closed_by was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: githubuser.Label}
+		}
+		return e.ClosedBy, nil
+	}
+	return nil, &NotLoadedError{edge: "closed_by"}
 }
 
 // FromResponse scans the gremlin response data into GitHubIssue.
@@ -48,7 +104,8 @@ func (ghi *GitHubIssue) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghi struct {
-		ID                int               `json:"id,omitempty"`
+		ID                string            `json:"id,omitempty"`
+		GithubID          int               `json:"github_id,omitempty"`
 		Number            int               `json:"number,omitempty"`
 		Title             string            `json:"title,omitempty"`
 		Body              string            `json:"body,omitempty"`
@@ -66,6 +123,7 @@ func (ghi *GitHubIssue) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	ghi.ID = scanghi.ID
+	ghi.GithubID = scanghi.GithubID
 	ghi.Number = scanghi.Number
 	ghi.Title = scanghi.Title
 	ghi.Body = scanghi.Body
@@ -79,6 +137,21 @@ func (ghi *GitHubIssue) FromResponse(res *gremlin.Response) error {
 	ghi.ClosedAt = scanghi.ClosedAt
 	ghi.AuthorAssociation = scanghi.AuthorAssociation
 	return nil
+}
+
+// QueryAssignee queries the "assignee" edge of the GitHubIssue entity.
+func (ghi *GitHubIssue) QueryAssignee() *GitHubUserQuery {
+	return (&GitHubIssueClient{config: ghi.config}).QueryAssignee(ghi)
+}
+
+// QueryAuthor queries the "author" edge of the GitHubIssue entity.
+func (ghi *GitHubIssue) QueryAuthor() *GitHubUserQuery {
+	return (&GitHubIssueClient{config: ghi.config}).QueryAuthor(ghi)
+}
+
+// QueryClosedBy queries the "closed_by" edge of the GitHubIssue entity.
+func (ghi *GitHubIssue) QueryClosedBy() *GitHubUserQuery {
+	return (&GitHubIssueClient{config: ghi.config}).QueryClosedBy(ghi)
 }
 
 // Update returns a builder for updating this GitHubIssue.
@@ -104,6 +177,8 @@ func (ghi *GitHubIssue) String() string {
 	var builder strings.Builder
 	builder.WriteString("GitHubIssue(")
 	builder.WriteString(fmt.Sprintf("id=%v", ghi.ID))
+	builder.WriteString(", github_id=")
+	builder.WriteString(fmt.Sprintf("%v", ghi.GithubID))
 	builder.WriteString(", number=")
 	builder.WriteString(fmt.Sprintf("%v", ghi.Number))
 	builder.WriteString(", title=")
@@ -142,7 +217,8 @@ func (ghi *GitHubIssues) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghi []struct {
-		ID                int               `json:"id,omitempty"`
+		ID                string            `json:"id,omitempty"`
+		GithubID          int               `json:"github_id,omitempty"`
 		Number            int               `json:"number,omitempty"`
 		Title             string            `json:"title,omitempty"`
 		Body              string            `json:"body,omitempty"`
@@ -162,6 +238,7 @@ func (ghi *GitHubIssues) FromResponse(res *gremlin.Response) error {
 	for _, v := range scanghi {
 		*ghi = append(*ghi, &GitHubIssue{
 			ID:                v.ID,
+			GithubID:          v.GithubID,
 			Number:            v.Number,
 			Title:             v.Title,
 			Body:              v.Body,

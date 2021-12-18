@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/gremlin/graph/dsl/g"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/p"
 	"github.com/giantswarm/graph/ent/githubissue"
+	"github.com/giantswarm/graph/ent/githubuser"
 )
 
 // GitHubIssueCreate is the builder for creating a GitHubIssue entity.
@@ -20,6 +21,12 @@ type GitHubIssueCreate struct {
 	config
 	mutation *GitHubIssueMutation
 	hooks    []Hook
+}
+
+// SetGithubID sets the "github_id" field.
+func (ghic *GitHubIssueCreate) SetGithubID(i int) *GitHubIssueCreate {
+	ghic.mutation.SetGithubID(i)
+	return ghic
 }
 
 // SetNumber sets the "number" field.
@@ -103,9 +110,54 @@ func (ghic *GitHubIssueCreate) SetAuthorAssociation(s string) *GitHubIssueCreate
 }
 
 // SetID sets the "id" field.
-func (ghic *GitHubIssueCreate) SetID(i int) *GitHubIssueCreate {
-	ghic.mutation.SetID(i)
+func (ghic *GitHubIssueCreate) SetID(s string) *GitHubIssueCreate {
+	ghic.mutation.SetID(s)
 	return ghic
+}
+
+// AddAssigneeIDs adds the "assignee" edge to the GitHubUser entity by IDs.
+func (ghic *GitHubIssueCreate) AddAssigneeIDs(ids ...string) *GitHubIssueCreate {
+	ghic.mutation.AddAssigneeIDs(ids...)
+	return ghic
+}
+
+// AddAssignee adds the "assignee" edges to the GitHubUser entity.
+func (ghic *GitHubIssueCreate) AddAssignee(g ...*GitHubUser) *GitHubIssueCreate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghic.AddAssigneeIDs(ids...)
+}
+
+// SetAuthorID sets the "author" edge to the GitHubUser entity by ID.
+func (ghic *GitHubIssueCreate) SetAuthorID(id string) *GitHubIssueCreate {
+	ghic.mutation.SetAuthorID(id)
+	return ghic
+}
+
+// SetAuthor sets the "author" edge to the GitHubUser entity.
+func (ghic *GitHubIssueCreate) SetAuthor(g *GitHubUser) *GitHubIssueCreate {
+	return ghic.SetAuthorID(g.ID)
+}
+
+// SetClosedByID sets the "closed_by" edge to the GitHubUser entity by ID.
+func (ghic *GitHubIssueCreate) SetClosedByID(id string) *GitHubIssueCreate {
+	ghic.mutation.SetClosedByID(id)
+	return ghic
+}
+
+// SetNillableClosedByID sets the "closed_by" edge to the GitHubUser entity by ID if the given value is not nil.
+func (ghic *GitHubIssueCreate) SetNillableClosedByID(id *string) *GitHubIssueCreate {
+	if id != nil {
+		ghic = ghic.SetClosedByID(*id)
+	}
+	return ghic
+}
+
+// SetClosedBy sets the "closed_by" edge to the GitHubUser entity.
+func (ghic *GitHubIssueCreate) SetClosedBy(g *GitHubUser) *GitHubIssueCreate {
+	return ghic.SetClosedByID(g.ID)
 }
 
 // Mutation returns the GitHubIssueMutation object of the builder.
@@ -187,6 +239,14 @@ func (ghic *GitHubIssueCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ghic *GitHubIssueCreate) check() error {
+	if _, ok := ghic.mutation.GithubID(); !ok {
+		return &ValidationError{Name: "github_id", err: errors.New(`ent: missing required field "github_id"`)}
+	}
+	if v, ok := ghic.mutation.GithubID(); ok {
+		if err := githubissue.GithubIDValidator(v); err != nil {
+			return &ValidationError{Name: "github_id", err: fmt.Errorf(`ent: validator failed for field "github_id": %w`, err)}
+		}
+	}
 	if _, ok := ghic.mutation.Number(); !ok {
 		return &ValidationError{Name: "number", err: errors.New(`ent: missing required field "number"`)}
 	}
@@ -263,6 +323,9 @@ func (ghic *GitHubIssueCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "id": %w`, err)}
 		}
 	}
+	if _, ok := ghic.mutation.AuthorID(); !ok {
+		return &ValidationError{Name: "author", err: errors.New("ent: missing required edge \"author\"")}
+	}
 	return nil
 }
 
@@ -287,10 +350,17 @@ func (ghic *GitHubIssueCreate) gremlin() *dsl.Traversal {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
 	}
-	constraints := make([]*constraint, 0, 1)
+	constraints := make([]*constraint, 0, 2)
 	v := g.AddV(githubissue.Label)
 	if id, ok := ghic.mutation.ID(); ok {
 		v.Property(dsl.ID, id)
+	}
+	if value, ok := ghic.mutation.GithubID(); ok {
+		constraints = append(constraints, &constraint{
+			pred: g.V().Has(githubissue.Label, githubissue.FieldGithubID, value).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubissue.Label, githubissue.FieldGithubID, value)),
+		})
+		v.Property(dsl.Single, githubissue.FieldGithubID, value)
 	}
 	if value, ok := ghic.mutation.Number(); ok {
 		v.Property(dsl.Single, githubissue.FieldNumber, value)
@@ -331,6 +401,15 @@ func (ghic *GitHubIssueCreate) gremlin() *dsl.Traversal {
 	}
 	if value, ok := ghic.mutation.AuthorAssociation(); ok {
 		v.Property(dsl.Single, githubissue.FieldAuthorAssociation, value)
+	}
+	for _, id := range ghic.mutation.AssigneeIDs() {
+		v.AddE(githubissue.AssigneeLabel).To(g.V(id)).OutV()
+	}
+	for _, id := range ghic.mutation.AuthorIDs() {
+		v.AddE(githubuser.CreatedIssuesLabel).From(g.V(id)).InV()
+	}
+	for _, id := range ghic.mutation.ClosedByIDs() {
+		v.AddE(githubuser.ClosedIssuesLabel).From(g.V(id)).InV()
 	}
 	if len(constraints) == 0 {
 		return v.ValueMap(true)

@@ -265,7 +265,9 @@ type GitHubIssueMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
+	id                 *string
+	github_id          *int
+	addgithub_id       *int
 	number             *int
 	addnumber          *int
 	title              *string
@@ -281,6 +283,13 @@ type GitHubIssueMutation struct {
 	closed_at          *string
 	author_association *string
 	clearedFields      map[string]struct{}
+	assignee           map[string]struct{}
+	removedassignee    map[string]struct{}
+	clearedassignee    bool
+	author             *string
+	clearedauthor      bool
+	closed_by          *string
+	clearedclosed_by   bool
 	done               bool
 	oldValue           func(context.Context) (*GitHubIssue, error)
 	predicates         []predicate.GitHubIssue
@@ -306,7 +315,7 @@ func newGitHubIssueMutation(c config, op Op, opts ...githubissueOption) *GitHubI
 }
 
 // withGitHubIssueID sets the ID field of the mutation.
-func withGitHubIssueID(id int) githubissueOption {
+func withGitHubIssueID(id string) githubissueOption {
 	return func(m *GitHubIssueMutation) {
 		var (
 			err   error
@@ -358,17 +367,73 @@ func (m GitHubIssueMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of GitHubIssue entities.
-func (m *GitHubIssueMutation) SetID(id int) {
+func (m *GitHubIssueMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GitHubIssueMutation) ID() (id int, exists bool) {
+func (m *GitHubIssueMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
 	return *m.id, true
+}
+
+// SetGithubID sets the "github_id" field.
+func (m *GitHubIssueMutation) SetGithubID(i int) {
+	m.github_id = &i
+	m.addgithub_id = nil
+}
+
+// GithubID returns the value of the "github_id" field in the mutation.
+func (m *GitHubIssueMutation) GithubID() (r int, exists bool) {
+	v := m.github_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGithubID returns the old "github_id" field's value of the GitHubIssue entity.
+// If the GitHubIssue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GitHubIssueMutation) OldGithubID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldGithubID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldGithubID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGithubID: %w", err)
+	}
+	return oldValue.GithubID, nil
+}
+
+// AddGithubID adds i to the "github_id" field.
+func (m *GitHubIssueMutation) AddGithubID(i int) {
+	if m.addgithub_id != nil {
+		*m.addgithub_id += i
+	} else {
+		m.addgithub_id = &i
+	}
+}
+
+// AddedGithubID returns the value that was added to the "github_id" field in this mutation.
+func (m *GitHubIssueMutation) AddedGithubID() (r int, exists bool) {
+	v := m.addgithub_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGithubID resets all changes to the "github_id" field.
+func (m *GitHubIssueMutation) ResetGithubID() {
+	m.github_id = nil
+	m.addgithub_id = nil
 }
 
 // SetNumber sets the "number" field.
@@ -843,6 +908,138 @@ func (m *GitHubIssueMutation) ResetAuthorAssociation() {
 	m.author_association = nil
 }
 
+// AddAssigneeIDs adds the "assignee" edge to the GitHubUser entity by ids.
+func (m *GitHubIssueMutation) AddAssigneeIDs(ids ...string) {
+	if m.assignee == nil {
+		m.assignee = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.assignee[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAssignee clears the "assignee" edge to the GitHubUser entity.
+func (m *GitHubIssueMutation) ClearAssignee() {
+	m.clearedassignee = true
+}
+
+// AssigneeCleared reports if the "assignee" edge to the GitHubUser entity was cleared.
+func (m *GitHubIssueMutation) AssigneeCleared() bool {
+	return m.clearedassignee
+}
+
+// RemoveAssigneeIDs removes the "assignee" edge to the GitHubUser entity by IDs.
+func (m *GitHubIssueMutation) RemoveAssigneeIDs(ids ...string) {
+	if m.removedassignee == nil {
+		m.removedassignee = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.assignee, ids[i])
+		m.removedassignee[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAssignee returns the removed IDs of the "assignee" edge to the GitHubUser entity.
+func (m *GitHubIssueMutation) RemovedAssigneeIDs() (ids []string) {
+	for id := range m.removedassignee {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AssigneeIDs returns the "assignee" edge IDs in the mutation.
+func (m *GitHubIssueMutation) AssigneeIDs() (ids []string) {
+	for id := range m.assignee {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAssignee resets all changes to the "assignee" edge.
+func (m *GitHubIssueMutation) ResetAssignee() {
+	m.assignee = nil
+	m.clearedassignee = false
+	m.removedassignee = nil
+}
+
+// SetAuthorID sets the "author" edge to the GitHubUser entity by id.
+func (m *GitHubIssueMutation) SetAuthorID(id string) {
+	m.author = &id
+}
+
+// ClearAuthor clears the "author" edge to the GitHubUser entity.
+func (m *GitHubIssueMutation) ClearAuthor() {
+	m.clearedauthor = true
+}
+
+// AuthorCleared reports if the "author" edge to the GitHubUser entity was cleared.
+func (m *GitHubIssueMutation) AuthorCleared() bool {
+	return m.clearedauthor
+}
+
+// AuthorID returns the "author" edge ID in the mutation.
+func (m *GitHubIssueMutation) AuthorID() (id string, exists bool) {
+	if m.author != nil {
+		return *m.author, true
+	}
+	return
+}
+
+// AuthorIDs returns the "author" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AuthorID instead. It exists only for internal usage by the builders.
+func (m *GitHubIssueMutation) AuthorIDs() (ids []string) {
+	if id := m.author; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAuthor resets all changes to the "author" edge.
+func (m *GitHubIssueMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+}
+
+// SetClosedByID sets the "closed_by" edge to the GitHubUser entity by id.
+func (m *GitHubIssueMutation) SetClosedByID(id string) {
+	m.closed_by = &id
+}
+
+// ClearClosedBy clears the "closed_by" edge to the GitHubUser entity.
+func (m *GitHubIssueMutation) ClearClosedBy() {
+	m.clearedclosed_by = true
+}
+
+// ClosedByCleared reports if the "closed_by" edge to the GitHubUser entity was cleared.
+func (m *GitHubIssueMutation) ClosedByCleared() bool {
+	return m.clearedclosed_by
+}
+
+// ClosedByID returns the "closed_by" edge ID in the mutation.
+func (m *GitHubIssueMutation) ClosedByID() (id string, exists bool) {
+	if m.closed_by != nil {
+		return *m.closed_by, true
+	}
+	return
+}
+
+// ClosedByIDs returns the "closed_by" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ClosedByID instead. It exists only for internal usage by the builders.
+func (m *GitHubIssueMutation) ClosedByIDs() (ids []string) {
+	if id := m.closed_by; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetClosedBy resets all changes to the "closed_by" edge.
+func (m *GitHubIssueMutation) ResetClosedBy() {
+	m.closed_by = nil
+	m.clearedclosed_by = false
+}
+
 // Where appends a list predicates to the GitHubIssueMutation builder.
 func (m *GitHubIssueMutation) Where(ps ...predicate.GitHubIssue) {
 	m.predicates = append(m.predicates, ps...)
@@ -862,7 +1059,10 @@ func (m *GitHubIssueMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GitHubIssueMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
+	if m.github_id != nil {
+		fields = append(fields, githubissue.FieldGithubID)
+	}
 	if m.number != nil {
 		fields = append(fields, githubissue.FieldNumber)
 	}
@@ -907,6 +1107,8 @@ func (m *GitHubIssueMutation) Fields() []string {
 // schema.
 func (m *GitHubIssueMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case githubissue.FieldGithubID:
+		return m.GithubID()
 	case githubissue.FieldNumber:
 		return m.Number()
 	case githubissue.FieldTitle:
@@ -940,6 +1142,8 @@ func (m *GitHubIssueMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *GitHubIssueMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case githubissue.FieldGithubID:
+		return m.OldGithubID(ctx)
 	case githubissue.FieldNumber:
 		return m.OldNumber(ctx)
 	case githubissue.FieldTitle:
@@ -973,6 +1177,13 @@ func (m *GitHubIssueMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *GitHubIssueMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case githubissue.FieldGithubID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGithubID(v)
+		return nil
 	case githubissue.FieldNumber:
 		v, ok := value.(int)
 		if !ok {
@@ -1065,6 +1276,9 @@ func (m *GitHubIssueMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *GitHubIssueMutation) AddedFields() []string {
 	var fields []string
+	if m.addgithub_id != nil {
+		fields = append(fields, githubissue.FieldGithubID)
+	}
 	if m.addnumber != nil {
 		fields = append(fields, githubissue.FieldNumber)
 	}
@@ -1079,6 +1293,8 @@ func (m *GitHubIssueMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *GitHubIssueMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case githubissue.FieldGithubID:
+		return m.AddedGithubID()
 	case githubissue.FieldNumber:
 		return m.AddedNumber()
 	case githubissue.FieldCommentsCount:
@@ -1092,6 +1308,13 @@ func (m *GitHubIssueMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GitHubIssueMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case githubissue.FieldGithubID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGithubID(v)
+		return nil
 	case githubissue.FieldNumber:
 		v, ok := value.(int)
 		if !ok {
@@ -1133,6 +1356,9 @@ func (m *GitHubIssueMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *GitHubIssueMutation) ResetField(name string) error {
 	switch name {
+	case githubissue.FieldGithubID:
+		m.ResetGithubID()
+		return nil
 	case githubissue.FieldNumber:
 		m.ResetNumber()
 		return nil
@@ -1175,65 +1401,150 @@ func (m *GitHubIssueMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GitHubIssueMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 3)
+	if m.assignee != nil {
+		edges = append(edges, githubissue.EdgeAssignee)
+	}
+	if m.author != nil {
+		edges = append(edges, githubissue.EdgeAuthor)
+	}
+	if m.closed_by != nil {
+		edges = append(edges, githubissue.EdgeClosedBy)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *GitHubIssueMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case githubissue.EdgeAssignee:
+		ids := make([]ent.Value, 0, len(m.assignee))
+		for id := range m.assignee {
+			ids = append(ids, id)
+		}
+		return ids
+	case githubissue.EdgeAuthor:
+		if id := m.author; id != nil {
+			return []ent.Value{*id}
+		}
+	case githubissue.EdgeClosedBy:
+		if id := m.closed_by; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GitHubIssueMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 3)
+	if m.removedassignee != nil {
+		edges = append(edges, githubissue.EdgeAssignee)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *GitHubIssueMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case githubissue.EdgeAssignee:
+		ids := make([]ent.Value, 0, len(m.removedassignee))
+		for id := range m.removedassignee {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GitHubIssueMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 3)
+	if m.clearedassignee {
+		edges = append(edges, githubissue.EdgeAssignee)
+	}
+	if m.clearedauthor {
+		edges = append(edges, githubissue.EdgeAuthor)
+	}
+	if m.clearedclosed_by {
+		edges = append(edges, githubissue.EdgeClosedBy)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *GitHubIssueMutation) EdgeCleared(name string) bool {
+	switch name {
+	case githubissue.EdgeAssignee:
+		return m.clearedassignee
+	case githubissue.EdgeAuthor:
+		return m.clearedauthor
+	case githubissue.EdgeClosedBy:
+		return m.clearedclosed_by
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *GitHubIssueMutation) ClearEdge(name string) error {
+	switch name {
+	case githubissue.EdgeAuthor:
+		m.ClearAuthor()
+		return nil
+	case githubissue.EdgeClosedBy:
+		m.ClearClosedBy()
+		return nil
+	}
 	return fmt.Errorf("unknown GitHubIssue unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *GitHubIssueMutation) ResetEdge(name string) error {
+	switch name {
+	case githubissue.EdgeAssignee:
+		m.ResetAssignee()
+		return nil
+	case githubissue.EdgeAuthor:
+		m.ResetAuthor()
+		return nil
+	case githubissue.EdgeClosedBy:
+		m.ResetClosedBy()
+		return nil
+	}
 	return fmt.Errorf("unknown GitHubIssue edge %s", name)
 }
 
 // GitHubUserMutation represents an operation that mutates the GitHubUser nodes in the graph.
 type GitHubUserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	login         *string
-	email         *string
-	name          *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*GitHubUser, error)
-	predicates    []predicate.GitHubUser
+	op                     Op
+	typ                    string
+	id                     *string
+	github_id              *int
+	addgithub_id           *int
+	login                  *string
+	email                  *string
+	name                   *string
+	clearedFields          map[string]struct{}
+	created_issues         map[string]struct{}
+	removedcreated_issues  map[string]struct{}
+	clearedcreated_issues  bool
+	closed_issues          map[string]struct{}
+	removedclosed_issues   map[string]struct{}
+	clearedclosed_issues   bool
+	person                 *string
+	clearedperson          bool
+	assigned_issues        map[string]struct{}
+	removedassigned_issues map[string]struct{}
+	clearedassigned_issues bool
+	done                   bool
+	oldValue               func(context.Context) (*GitHubUser, error)
+	predicates             []predicate.GitHubUser
 }
 
 var _ ent.Mutation = (*GitHubUserMutation)(nil)
@@ -1256,7 +1567,7 @@ func newGitHubUserMutation(c config, op Op, opts ...githubuserOption) *GitHubUse
 }
 
 // withGitHubUserID sets the ID field of the mutation.
-func withGitHubUserID(id int) githubuserOption {
+func withGitHubUserID(id string) githubuserOption {
 	return func(m *GitHubUserMutation) {
 		var (
 			err   error
@@ -1306,13 +1617,75 @@ func (m GitHubUserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GitHubUser entities.
+func (m *GitHubUserMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GitHubUserMutation) ID() (id int, exists bool) {
+func (m *GitHubUserMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
 	return *m.id, true
+}
+
+// SetGithubID sets the "github_id" field.
+func (m *GitHubUserMutation) SetGithubID(i int) {
+	m.github_id = &i
+	m.addgithub_id = nil
+}
+
+// GithubID returns the value of the "github_id" field in the mutation.
+func (m *GitHubUserMutation) GithubID() (r int, exists bool) {
+	v := m.github_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGithubID returns the old "github_id" field's value of the GitHubUser entity.
+// If the GitHubUser object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GitHubUserMutation) OldGithubID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldGithubID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldGithubID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGithubID: %w", err)
+	}
+	return oldValue.GithubID, nil
+}
+
+// AddGithubID adds i to the "github_id" field.
+func (m *GitHubUserMutation) AddGithubID(i int) {
+	if m.addgithub_id != nil {
+		*m.addgithub_id += i
+	} else {
+		m.addgithub_id = &i
+	}
+}
+
+// AddedGithubID returns the value that was added to the "github_id" field in this mutation.
+func (m *GitHubUserMutation) AddedGithubID() (r int, exists bool) {
+	v := m.addgithub_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGithubID resets all changes to the "github_id" field.
+func (m *GitHubUserMutation) ResetGithubID() {
+	m.github_id = nil
+	m.addgithub_id = nil
 }
 
 // SetLogin sets the "login" field.
@@ -1423,6 +1796,207 @@ func (m *GitHubUserMutation) ResetName() {
 	m.name = nil
 }
 
+// AddCreatedIssueIDs adds the "created_issues" edge to the GitHubIssue entity by ids.
+func (m *GitHubUserMutation) AddCreatedIssueIDs(ids ...string) {
+	if m.created_issues == nil {
+		m.created_issues = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.created_issues[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedIssues clears the "created_issues" edge to the GitHubIssue entity.
+func (m *GitHubUserMutation) ClearCreatedIssues() {
+	m.clearedcreated_issues = true
+}
+
+// CreatedIssuesCleared reports if the "created_issues" edge to the GitHubIssue entity was cleared.
+func (m *GitHubUserMutation) CreatedIssuesCleared() bool {
+	return m.clearedcreated_issues
+}
+
+// RemoveCreatedIssueIDs removes the "created_issues" edge to the GitHubIssue entity by IDs.
+func (m *GitHubUserMutation) RemoveCreatedIssueIDs(ids ...string) {
+	if m.removedcreated_issues == nil {
+		m.removedcreated_issues = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.created_issues, ids[i])
+		m.removedcreated_issues[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedIssues returns the removed IDs of the "created_issues" edge to the GitHubIssue entity.
+func (m *GitHubUserMutation) RemovedCreatedIssuesIDs() (ids []string) {
+	for id := range m.removedcreated_issues {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedIssuesIDs returns the "created_issues" edge IDs in the mutation.
+func (m *GitHubUserMutation) CreatedIssuesIDs() (ids []string) {
+	for id := range m.created_issues {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedIssues resets all changes to the "created_issues" edge.
+func (m *GitHubUserMutation) ResetCreatedIssues() {
+	m.created_issues = nil
+	m.clearedcreated_issues = false
+	m.removedcreated_issues = nil
+}
+
+// AddClosedIssueIDs adds the "closed_issues" edge to the GitHubIssue entity by ids.
+func (m *GitHubUserMutation) AddClosedIssueIDs(ids ...string) {
+	if m.closed_issues == nil {
+		m.closed_issues = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.closed_issues[ids[i]] = struct{}{}
+	}
+}
+
+// ClearClosedIssues clears the "closed_issues" edge to the GitHubIssue entity.
+func (m *GitHubUserMutation) ClearClosedIssues() {
+	m.clearedclosed_issues = true
+}
+
+// ClosedIssuesCleared reports if the "closed_issues" edge to the GitHubIssue entity was cleared.
+func (m *GitHubUserMutation) ClosedIssuesCleared() bool {
+	return m.clearedclosed_issues
+}
+
+// RemoveClosedIssueIDs removes the "closed_issues" edge to the GitHubIssue entity by IDs.
+func (m *GitHubUserMutation) RemoveClosedIssueIDs(ids ...string) {
+	if m.removedclosed_issues == nil {
+		m.removedclosed_issues = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.closed_issues, ids[i])
+		m.removedclosed_issues[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedClosedIssues returns the removed IDs of the "closed_issues" edge to the GitHubIssue entity.
+func (m *GitHubUserMutation) RemovedClosedIssuesIDs() (ids []string) {
+	for id := range m.removedclosed_issues {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ClosedIssuesIDs returns the "closed_issues" edge IDs in the mutation.
+func (m *GitHubUserMutation) ClosedIssuesIDs() (ids []string) {
+	for id := range m.closed_issues {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetClosedIssues resets all changes to the "closed_issues" edge.
+func (m *GitHubUserMutation) ResetClosedIssues() {
+	m.closed_issues = nil
+	m.clearedclosed_issues = false
+	m.removedclosed_issues = nil
+}
+
+// SetPersonID sets the "person" edge to the Person entity by id.
+func (m *GitHubUserMutation) SetPersonID(id string) {
+	m.person = &id
+}
+
+// ClearPerson clears the "person" edge to the Person entity.
+func (m *GitHubUserMutation) ClearPerson() {
+	m.clearedperson = true
+}
+
+// PersonCleared reports if the "person" edge to the Person entity was cleared.
+func (m *GitHubUserMutation) PersonCleared() bool {
+	return m.clearedperson
+}
+
+// PersonID returns the "person" edge ID in the mutation.
+func (m *GitHubUserMutation) PersonID() (id string, exists bool) {
+	if m.person != nil {
+		return *m.person, true
+	}
+	return
+}
+
+// PersonIDs returns the "person" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PersonID instead. It exists only for internal usage by the builders.
+func (m *GitHubUserMutation) PersonIDs() (ids []string) {
+	if id := m.person; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPerson resets all changes to the "person" edge.
+func (m *GitHubUserMutation) ResetPerson() {
+	m.person = nil
+	m.clearedperson = false
+}
+
+// AddAssignedIssueIDs adds the "assigned_issues" edge to the GitHubIssue entity by ids.
+func (m *GitHubUserMutation) AddAssignedIssueIDs(ids ...string) {
+	if m.assigned_issues == nil {
+		m.assigned_issues = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.assigned_issues[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAssignedIssues clears the "assigned_issues" edge to the GitHubIssue entity.
+func (m *GitHubUserMutation) ClearAssignedIssues() {
+	m.clearedassigned_issues = true
+}
+
+// AssignedIssuesCleared reports if the "assigned_issues" edge to the GitHubIssue entity was cleared.
+func (m *GitHubUserMutation) AssignedIssuesCleared() bool {
+	return m.clearedassigned_issues
+}
+
+// RemoveAssignedIssueIDs removes the "assigned_issues" edge to the GitHubIssue entity by IDs.
+func (m *GitHubUserMutation) RemoveAssignedIssueIDs(ids ...string) {
+	if m.removedassigned_issues == nil {
+		m.removedassigned_issues = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.assigned_issues, ids[i])
+		m.removedassigned_issues[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAssignedIssues returns the removed IDs of the "assigned_issues" edge to the GitHubIssue entity.
+func (m *GitHubUserMutation) RemovedAssignedIssuesIDs() (ids []string) {
+	for id := range m.removedassigned_issues {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AssignedIssuesIDs returns the "assigned_issues" edge IDs in the mutation.
+func (m *GitHubUserMutation) AssignedIssuesIDs() (ids []string) {
+	for id := range m.assigned_issues {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAssignedIssues resets all changes to the "assigned_issues" edge.
+func (m *GitHubUserMutation) ResetAssignedIssues() {
+	m.assigned_issues = nil
+	m.clearedassigned_issues = false
+	m.removedassigned_issues = nil
+}
+
 // Where appends a list predicates to the GitHubUserMutation builder.
 func (m *GitHubUserMutation) Where(ps ...predicate.GitHubUser) {
 	m.predicates = append(m.predicates, ps...)
@@ -1442,7 +2016,10 @@ func (m *GitHubUserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GitHubUserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
+	if m.github_id != nil {
+		fields = append(fields, githubuser.FieldGithubID)
+	}
 	if m.login != nil {
 		fields = append(fields, githubuser.FieldLogin)
 	}
@@ -1460,6 +2037,8 @@ func (m *GitHubUserMutation) Fields() []string {
 // schema.
 func (m *GitHubUserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case githubuser.FieldGithubID:
+		return m.GithubID()
 	case githubuser.FieldLogin:
 		return m.Login()
 	case githubuser.FieldEmail:
@@ -1475,6 +2054,8 @@ func (m *GitHubUserMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *GitHubUserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case githubuser.FieldGithubID:
+		return m.OldGithubID(ctx)
 	case githubuser.FieldLogin:
 		return m.OldLogin(ctx)
 	case githubuser.FieldEmail:
@@ -1490,6 +2071,13 @@ func (m *GitHubUserMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *GitHubUserMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case githubuser.FieldGithubID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGithubID(v)
+		return nil
 	case githubuser.FieldLogin:
 		v, ok := value.(string)
 		if !ok {
@@ -1518,13 +2106,21 @@ func (m *GitHubUserMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *GitHubUserMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addgithub_id != nil {
+		fields = append(fields, githubuser.FieldGithubID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *GitHubUserMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case githubuser.FieldGithubID:
+		return m.AddedGithubID()
+	}
 	return nil, false
 }
 
@@ -1533,6 +2129,13 @@ func (m *GitHubUserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GitHubUserMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case githubuser.FieldGithubID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGithubID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GitHubUser numeric field %s", name)
 }
@@ -1560,6 +2163,9 @@ func (m *GitHubUserMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *GitHubUserMutation) ResetField(name string) error {
 	switch name {
+	case githubuser.FieldGithubID:
+		m.ResetGithubID()
+		return nil
 	case githubuser.FieldLogin:
 		m.ResetLogin()
 		return nil
@@ -1575,67 +2181,173 @@ func (m *GitHubUserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GitHubUserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 4)
+	if m.created_issues != nil {
+		edges = append(edges, githubuser.EdgeCreatedIssues)
+	}
+	if m.closed_issues != nil {
+		edges = append(edges, githubuser.EdgeClosedIssues)
+	}
+	if m.person != nil {
+		edges = append(edges, githubuser.EdgePerson)
+	}
+	if m.assigned_issues != nil {
+		edges = append(edges, githubuser.EdgeAssignedIssues)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *GitHubUserMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case githubuser.EdgeCreatedIssues:
+		ids := make([]ent.Value, 0, len(m.created_issues))
+		for id := range m.created_issues {
+			ids = append(ids, id)
+		}
+		return ids
+	case githubuser.EdgeClosedIssues:
+		ids := make([]ent.Value, 0, len(m.closed_issues))
+		for id := range m.closed_issues {
+			ids = append(ids, id)
+		}
+		return ids
+	case githubuser.EdgePerson:
+		if id := m.person; id != nil {
+			return []ent.Value{*id}
+		}
+	case githubuser.EdgeAssignedIssues:
+		ids := make([]ent.Value, 0, len(m.assigned_issues))
+		for id := range m.assigned_issues {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GitHubUserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 4)
+	if m.removedcreated_issues != nil {
+		edges = append(edges, githubuser.EdgeCreatedIssues)
+	}
+	if m.removedclosed_issues != nil {
+		edges = append(edges, githubuser.EdgeClosedIssues)
+	}
+	if m.removedassigned_issues != nil {
+		edges = append(edges, githubuser.EdgeAssignedIssues)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *GitHubUserMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case githubuser.EdgeCreatedIssues:
+		ids := make([]ent.Value, 0, len(m.removedcreated_issues))
+		for id := range m.removedcreated_issues {
+			ids = append(ids, id)
+		}
+		return ids
+	case githubuser.EdgeClosedIssues:
+		ids := make([]ent.Value, 0, len(m.removedclosed_issues))
+		for id := range m.removedclosed_issues {
+			ids = append(ids, id)
+		}
+		return ids
+	case githubuser.EdgeAssignedIssues:
+		ids := make([]ent.Value, 0, len(m.removedassigned_issues))
+		for id := range m.removedassigned_issues {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GitHubUserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 4)
+	if m.clearedcreated_issues {
+		edges = append(edges, githubuser.EdgeCreatedIssues)
+	}
+	if m.clearedclosed_issues {
+		edges = append(edges, githubuser.EdgeClosedIssues)
+	}
+	if m.clearedperson {
+		edges = append(edges, githubuser.EdgePerson)
+	}
+	if m.clearedassigned_issues {
+		edges = append(edges, githubuser.EdgeAssignedIssues)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *GitHubUserMutation) EdgeCleared(name string) bool {
+	switch name {
+	case githubuser.EdgeCreatedIssues:
+		return m.clearedcreated_issues
+	case githubuser.EdgeClosedIssues:
+		return m.clearedclosed_issues
+	case githubuser.EdgePerson:
+		return m.clearedperson
+	case githubuser.EdgeAssignedIssues:
+		return m.clearedassigned_issues
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *GitHubUserMutation) ClearEdge(name string) error {
+	switch name {
+	case githubuser.EdgePerson:
+		m.ClearPerson()
+		return nil
+	}
 	return fmt.Errorf("unknown GitHubUser unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *GitHubUserMutation) ResetEdge(name string) error {
+	switch name {
+	case githubuser.EdgeCreatedIssues:
+		m.ResetCreatedIssues()
+		return nil
+	case githubuser.EdgeClosedIssues:
+		m.ResetClosedIssues()
+		return nil
+	case githubuser.EdgePerson:
+		m.ResetPerson()
+		return nil
+	case githubuser.EdgeAssignedIssues:
+		m.ResetAssignedIssues()
+		return nil
+	}
 	return fmt.Errorf("unknown GitHubUser edge %s", name)
 }
 
 // PersonMutation represents an operation that mutates the Person nodes in the graph.
 type PersonMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	email                *string
-	name                 *string
-	isGiantSwarmEmployee *bool
-	clearedFields        map[string]struct{}
-	gitHubAccount        *int
-	clearedgitHubAccount bool
-	done                 bool
-	oldValue             func(context.Context) (*Person, error)
-	predicates           []predicate.Person
+	op                    Op
+	typ                   string
+	id                    *string
+	email                 *string
+	name                  *string
+	isGiantSwarmEmployee  *bool
+	clearedFields         map[string]struct{}
+	github_account        *string
+	clearedgithub_account bool
+	done                  bool
+	oldValue              func(context.Context) (*Person, error)
+	predicates            []predicate.Person
 }
 
 var _ ent.Mutation = (*PersonMutation)(nil)
@@ -1658,7 +2370,7 @@ func newPersonMutation(c config, op Op, opts ...personOption) *PersonMutation {
 }
 
 // withPersonID sets the ID field of the mutation.
-func withPersonID(id int) personOption {
+func withPersonID(id string) personOption {
 	return func(m *PersonMutation) {
 		var (
 			err   error
@@ -1708,9 +2420,15 @@ func (m PersonMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Person entities.
+func (m *PersonMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PersonMutation) ID() (id int, exists bool) {
+func (m *PersonMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1825,43 +2543,43 @@ func (m *PersonMutation) ResetIsGiantSwarmEmployee() {
 	m.isGiantSwarmEmployee = nil
 }
 
-// SetGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by id.
-func (m *PersonMutation) SetGitHubAccountID(id int) {
-	m.gitHubAccount = &id
+// SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by id.
+func (m *PersonMutation) SetGithubAccountID(id string) {
+	m.github_account = &id
 }
 
-// ClearGitHubAccount clears the "gitHubAccount" edge to the GitHubUser entity.
-func (m *PersonMutation) ClearGitHubAccount() {
-	m.clearedgitHubAccount = true
+// ClearGithubAccount clears the "github_account" edge to the GitHubUser entity.
+func (m *PersonMutation) ClearGithubAccount() {
+	m.clearedgithub_account = true
 }
 
-// GitHubAccountCleared reports if the "gitHubAccount" edge to the GitHubUser entity was cleared.
-func (m *PersonMutation) GitHubAccountCleared() bool {
-	return m.clearedgitHubAccount
+// GithubAccountCleared reports if the "github_account" edge to the GitHubUser entity was cleared.
+func (m *PersonMutation) GithubAccountCleared() bool {
+	return m.clearedgithub_account
 }
 
-// GitHubAccountID returns the "gitHubAccount" edge ID in the mutation.
-func (m *PersonMutation) GitHubAccountID() (id int, exists bool) {
-	if m.gitHubAccount != nil {
-		return *m.gitHubAccount, true
+// GithubAccountID returns the "github_account" edge ID in the mutation.
+func (m *PersonMutation) GithubAccountID() (id string, exists bool) {
+	if m.github_account != nil {
+		return *m.github_account, true
 	}
 	return
 }
 
-// GitHubAccountIDs returns the "gitHubAccount" edge IDs in the mutation.
+// GithubAccountIDs returns the "github_account" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// GitHubAccountID instead. It exists only for internal usage by the builders.
-func (m *PersonMutation) GitHubAccountIDs() (ids []int) {
-	if id := m.gitHubAccount; id != nil {
+// GithubAccountID instead. It exists only for internal usage by the builders.
+func (m *PersonMutation) GithubAccountIDs() (ids []string) {
+	if id := m.github_account; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetGitHubAccount resets all changes to the "gitHubAccount" edge.
-func (m *PersonMutation) ResetGitHubAccount() {
-	m.gitHubAccount = nil
-	m.clearedgitHubAccount = false
+// ResetGithubAccount resets all changes to the "github_account" edge.
+func (m *PersonMutation) ResetGithubAccount() {
+	m.github_account = nil
+	m.clearedgithub_account = false
 }
 
 // Where appends a list predicates to the PersonMutation builder.
@@ -2017,8 +2735,8 @@ func (m *PersonMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PersonMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.gitHubAccount != nil {
-		edges = append(edges, person.EdgeGitHubAccount)
+	if m.github_account != nil {
+		edges = append(edges, person.EdgeGithubAccount)
 	}
 	return edges
 }
@@ -2027,8 +2745,8 @@ func (m *PersonMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *PersonMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case person.EdgeGitHubAccount:
-		if id := m.gitHubAccount; id != nil {
+	case person.EdgeGithubAccount:
+		if id := m.github_account; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -2052,8 +2770,8 @@ func (m *PersonMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PersonMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedgitHubAccount {
-		edges = append(edges, person.EdgeGitHubAccount)
+	if m.clearedgithub_account {
+		edges = append(edges, person.EdgeGithubAccount)
 	}
 	return edges
 }
@@ -2062,8 +2780,8 @@ func (m *PersonMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *PersonMutation) EdgeCleared(name string) bool {
 	switch name {
-	case person.EdgeGitHubAccount:
-		return m.clearedgitHubAccount
+	case person.EdgeGithubAccount:
+		return m.clearedgithub_account
 	}
 	return false
 }
@@ -2072,8 +2790,8 @@ func (m *PersonMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *PersonMutation) ClearEdge(name string) error {
 	switch name {
-	case person.EdgeGitHubAccount:
-		m.ClearGitHubAccount()
+	case person.EdgeGithubAccount:
+		m.ClearGithubAccount()
 		return nil
 	}
 	return fmt.Errorf("unknown Person unique edge %s", name)
@@ -2083,8 +2801,8 @@ func (m *PersonMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PersonMutation) ResetEdge(name string) error {
 	switch name {
-	case person.EdgeGitHubAccount:
-		m.ResetGitHubAccount()
+	case person.EdgeGithubAccount:
+		m.ResetGithubAccount()
 		return nil
 	}
 	return fmt.Errorf("unknown Person edge %s", name)

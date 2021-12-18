@@ -46,23 +46,23 @@ func (pu *PersonUpdate) SetIsGiantSwarmEmployee(b bool) *PersonUpdate {
 	return pu
 }
 
-// SetGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by ID.
-func (pu *PersonUpdate) SetGitHubAccountID(id int) *PersonUpdate {
-	pu.mutation.SetGitHubAccountID(id)
+// SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID.
+func (pu *PersonUpdate) SetGithubAccountID(id string) *PersonUpdate {
+	pu.mutation.SetGithubAccountID(id)
 	return pu
 }
 
-// SetNillableGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by ID if the given value is not nil.
-func (pu *PersonUpdate) SetNillableGitHubAccountID(id *int) *PersonUpdate {
+// SetNillableGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID if the given value is not nil.
+func (pu *PersonUpdate) SetNillableGithubAccountID(id *string) *PersonUpdate {
 	if id != nil {
-		pu = pu.SetGitHubAccountID(*id)
+		pu = pu.SetGithubAccountID(*id)
 	}
 	return pu
 }
 
-// SetGitHubAccount sets the "gitHubAccount" edge to the GitHubUser entity.
-func (pu *PersonUpdate) SetGitHubAccount(g *GitHubUser) *PersonUpdate {
-	return pu.SetGitHubAccountID(g.ID)
+// SetGithubAccount sets the "github_account" edge to the GitHubUser entity.
+func (pu *PersonUpdate) SetGithubAccount(g *GitHubUser) *PersonUpdate {
+	return pu.SetGithubAccountID(g.ID)
 }
 
 // Mutation returns the PersonMutation object of the builder.
@@ -70,9 +70,9 @@ func (pu *PersonUpdate) Mutation() *PersonMutation {
 	return pu.mutation
 }
 
-// ClearGitHubAccount clears the "gitHubAccount" edge to the GitHubUser entity.
-func (pu *PersonUpdate) ClearGitHubAccount() *PersonUpdate {
-	pu.mutation.ClearGitHubAccount()
+// ClearGithubAccount clears the "github_account" edge to the GitHubUser entity.
+func (pu *PersonUpdate) ClearGithubAccount() *PersonUpdate {
+	pu.mutation.ClearGithubAccount()
 	return pu
 }
 
@@ -147,7 +147,7 @@ func (pu *PersonUpdate) gremlin() *dsl.Traversal {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
 	}
-	constraints := make([]*constraint, 0, 1)
+	constraints := make([]*constraint, 0, 2)
 	v := g.V().HasLabel(person.Label)
 	for _, p := range pu.mutation.predicates {
 		p(v)
@@ -171,12 +171,16 @@ func (pu *PersonUpdate) gremlin() *dsl.Traversal {
 	if value, ok := pu.mutation.IsGiantSwarmEmployee(); ok {
 		v.Property(dsl.Single, person.FieldIsGiantSwarmEmployee, value)
 	}
-	if pu.mutation.GitHubAccountCleared() {
-		tr := rv.Clone().OutE(person.GitHubAccountLabel).Drop().Iterate()
+	if pu.mutation.GithubAccountCleared() {
+		tr := rv.Clone().OutE(person.GithubAccountLabel).Drop().Iterate()
 		trs = append(trs, tr)
 	}
-	for _, id := range pu.mutation.GitHubAccountIDs() {
-		v.AddE(person.GitHubAccountLabel).To(g.V(id)).OutV()
+	for _, id := range pu.mutation.GithubAccountIDs() {
+		v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, id)),
+		})
 	}
 	v.Count()
 	if len(constraints) > 0 {
@@ -219,23 +223,23 @@ func (puo *PersonUpdateOne) SetIsGiantSwarmEmployee(b bool) *PersonUpdateOne {
 	return puo
 }
 
-// SetGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by ID.
-func (puo *PersonUpdateOne) SetGitHubAccountID(id int) *PersonUpdateOne {
-	puo.mutation.SetGitHubAccountID(id)
+// SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID.
+func (puo *PersonUpdateOne) SetGithubAccountID(id string) *PersonUpdateOne {
+	puo.mutation.SetGithubAccountID(id)
 	return puo
 }
 
-// SetNillableGitHubAccountID sets the "gitHubAccount" edge to the GitHubUser entity by ID if the given value is not nil.
-func (puo *PersonUpdateOne) SetNillableGitHubAccountID(id *int) *PersonUpdateOne {
+// SetNillableGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID if the given value is not nil.
+func (puo *PersonUpdateOne) SetNillableGithubAccountID(id *string) *PersonUpdateOne {
 	if id != nil {
-		puo = puo.SetGitHubAccountID(*id)
+		puo = puo.SetGithubAccountID(*id)
 	}
 	return puo
 }
 
-// SetGitHubAccount sets the "gitHubAccount" edge to the GitHubUser entity.
-func (puo *PersonUpdateOne) SetGitHubAccount(g *GitHubUser) *PersonUpdateOne {
-	return puo.SetGitHubAccountID(g.ID)
+// SetGithubAccount sets the "github_account" edge to the GitHubUser entity.
+func (puo *PersonUpdateOne) SetGithubAccount(g *GitHubUser) *PersonUpdateOne {
+	return puo.SetGithubAccountID(g.ID)
 }
 
 // Mutation returns the PersonMutation object of the builder.
@@ -243,9 +247,9 @@ func (puo *PersonUpdateOne) Mutation() *PersonMutation {
 	return puo.mutation
 }
 
-// ClearGitHubAccount clears the "gitHubAccount" edge to the GitHubUser entity.
-func (puo *PersonUpdateOne) ClearGitHubAccount() *PersonUpdateOne {
-	puo.mutation.ClearGitHubAccount()
+// ClearGithubAccount clears the "github_account" edge to the GitHubUser entity.
+func (puo *PersonUpdateOne) ClearGithubAccount() *PersonUpdateOne {
+	puo.mutation.ClearGithubAccount()
 	return puo
 }
 
@@ -330,12 +334,12 @@ func (puo *PersonUpdateOne) gremlinSave(ctx context.Context) (*Person, error) {
 	return pe, nil
 }
 
-func (puo *PersonUpdateOne) gremlin(id int) *dsl.Traversal {
+func (puo *PersonUpdateOne) gremlin(id string) *dsl.Traversal {
 	type constraint struct {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
 	}
-	constraints := make([]*constraint, 0, 1)
+	constraints := make([]*constraint, 0, 2)
 	v := g.V(id)
 	var (
 		rv = v.Clone()
@@ -356,12 +360,16 @@ func (puo *PersonUpdateOne) gremlin(id int) *dsl.Traversal {
 	if value, ok := puo.mutation.IsGiantSwarmEmployee(); ok {
 		v.Property(dsl.Single, person.FieldIsGiantSwarmEmployee, value)
 	}
-	if puo.mutation.GitHubAccountCleared() {
-		tr := rv.Clone().OutE(person.GitHubAccountLabel).Drop().Iterate()
+	if puo.mutation.GithubAccountCleared() {
+		tr := rv.Clone().OutE(person.GithubAccountLabel).Drop().Iterate()
 		trs = append(trs, tr)
 	}
-	for _, id := range puo.mutation.GitHubAccountIDs() {
-		v.AddE(person.GitHubAccountLabel).To(g.V(id)).OutV()
+	for _, id := range puo.mutation.GithubAccountIDs() {
+		v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, id)),
+		})
 	}
 	if len(puo.fields) > 0 {
 		fields := make([]interface{}, 0, len(puo.fields)+1)

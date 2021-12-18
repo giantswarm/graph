@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/gremlin/graph/dsl"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/__"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/g"
+	"github.com/giantswarm/graph/ent/githubissue"
 	"github.com/giantswarm/graph/ent/githubuser"
+	"github.com/giantswarm/graph/ent/person"
 	"github.com/giantswarm/graph/ent/predicate"
 )
 
@@ -25,6 +27,11 @@ type GitHubUserQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.GitHubUser
+	// eager-loading edges.
+	withCreatedIssues  *GitHubIssueQuery
+	withClosedIssues   *GitHubIssueQuery
+	withPerson         *PersonQuery
+	withAssignedIssues *GitHubIssueQuery
 	// intermediate query (i.e. traversal path).
 	gremlin *dsl.Traversal
 	path    func(context.Context) (*dsl.Traversal, error)
@@ -61,6 +68,62 @@ func (ghuq *GitHubUserQuery) Order(o ...OrderFunc) *GitHubUserQuery {
 	return ghuq
 }
 
+// QueryCreatedIssues chains the current query on the "created_issues" edge.
+func (ghuq *GitHubUserQuery) QueryCreatedIssues() *GitHubIssueQuery {
+	query := &GitHubIssueQuery{config: ghuq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghuq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghuq.gremlinQuery(ctx)
+		fromU = gremlin.OutE(githubuser.CreatedIssuesLabel).InV()
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryClosedIssues chains the current query on the "closed_issues" edge.
+func (ghuq *GitHubUserQuery) QueryClosedIssues() *GitHubIssueQuery {
+	query := &GitHubIssueQuery{config: ghuq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghuq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghuq.gremlinQuery(ctx)
+		fromU = gremlin.OutE(githubuser.ClosedIssuesLabel).InV()
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPerson chains the current query on the "person" edge.
+func (ghuq *GitHubUserQuery) QueryPerson() *PersonQuery {
+	query := &PersonQuery{config: ghuq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghuq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghuq.gremlinQuery(ctx)
+		fromU = gremlin.InE(person.GithubAccountLabel).OutV()
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAssignedIssues chains the current query on the "assigned_issues" edge.
+func (ghuq *GitHubUserQuery) QueryAssignedIssues() *GitHubIssueQuery {
+	query := &GitHubIssueQuery{config: ghuq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghuq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghuq.gremlinQuery(ctx)
+		fromU = gremlin.InE(githubissue.AssigneeLabel).OutV()
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first GitHubUser entity from the query.
 // Returns a *NotFoundError when no GitHubUser was found.
 func (ghuq *GitHubUserQuery) First(ctx context.Context) (*GitHubUser, error) {
@@ -85,8 +148,8 @@ func (ghuq *GitHubUserQuery) FirstX(ctx context.Context) *GitHubUser {
 
 // FirstID returns the first GitHubUser ID from the query.
 // Returns a *NotFoundError when no GitHubUser ID was found.
-func (ghuq *GitHubUserQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (ghuq *GitHubUserQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = ghuq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -98,7 +161,7 @@ func (ghuq *GitHubUserQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (ghuq *GitHubUserQuery) FirstIDX(ctx context.Context) int {
+func (ghuq *GitHubUserQuery) FirstIDX(ctx context.Context) string {
 	id, err := ghuq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -136,8 +199,8 @@ func (ghuq *GitHubUserQuery) OnlyX(ctx context.Context) *GitHubUser {
 // OnlyID is like Only, but returns the only GitHubUser ID in the query.
 // Returns a *NotSingularError when exactly one GitHubUser ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (ghuq *GitHubUserQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (ghuq *GitHubUserQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = ghuq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -153,7 +216,7 @@ func (ghuq *GitHubUserQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (ghuq *GitHubUserQuery) OnlyIDX(ctx context.Context) int {
+func (ghuq *GitHubUserQuery) OnlyIDX(ctx context.Context) string {
 	id, err := ghuq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -179,8 +242,8 @@ func (ghuq *GitHubUserQuery) AllX(ctx context.Context) []*GitHubUser {
 }
 
 // IDs executes the query and returns a list of GitHubUser IDs.
-func (ghuq *GitHubUserQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (ghuq *GitHubUserQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := ghuq.Select(githubuser.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -188,7 +251,7 @@ func (ghuq *GitHubUserQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ghuq *GitHubUserQuery) IDsX(ctx context.Context) []int {
+func (ghuq *GitHubUserQuery) IDsX(ctx context.Context) []string {
 	ids, err := ghuq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -237,15 +300,63 @@ func (ghuq *GitHubUserQuery) Clone() *GitHubUserQuery {
 		return nil
 	}
 	return &GitHubUserQuery{
-		config:     ghuq.config,
-		limit:      ghuq.limit,
-		offset:     ghuq.offset,
-		order:      append([]OrderFunc{}, ghuq.order...),
-		predicates: append([]predicate.GitHubUser{}, ghuq.predicates...),
+		config:             ghuq.config,
+		limit:              ghuq.limit,
+		offset:             ghuq.offset,
+		order:              append([]OrderFunc{}, ghuq.order...),
+		predicates:         append([]predicate.GitHubUser{}, ghuq.predicates...),
+		withCreatedIssues:  ghuq.withCreatedIssues.Clone(),
+		withClosedIssues:   ghuq.withClosedIssues.Clone(),
+		withPerson:         ghuq.withPerson.Clone(),
+		withAssignedIssues: ghuq.withAssignedIssues.Clone(),
 		// clone intermediate query.
 		gremlin: ghuq.gremlin.Clone(),
 		path:    ghuq.path,
 	}
+}
+
+// WithCreatedIssues tells the query-builder to eager-load the nodes that are connected to
+// the "created_issues" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghuq *GitHubUserQuery) WithCreatedIssues(opts ...func(*GitHubIssueQuery)) *GitHubUserQuery {
+	query := &GitHubIssueQuery{config: ghuq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghuq.withCreatedIssues = query
+	return ghuq
+}
+
+// WithClosedIssues tells the query-builder to eager-load the nodes that are connected to
+// the "closed_issues" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghuq *GitHubUserQuery) WithClosedIssues(opts ...func(*GitHubIssueQuery)) *GitHubUserQuery {
+	query := &GitHubIssueQuery{config: ghuq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghuq.withClosedIssues = query
+	return ghuq
+}
+
+// WithPerson tells the query-builder to eager-load the nodes that are connected to
+// the "person" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghuq *GitHubUserQuery) WithPerson(opts ...func(*PersonQuery)) *GitHubUserQuery {
+	query := &PersonQuery{config: ghuq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghuq.withPerson = query
+	return ghuq
+}
+
+// WithAssignedIssues tells the query-builder to eager-load the nodes that are connected to
+// the "assigned_issues" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghuq *GitHubUserQuery) WithAssignedIssues(opts ...func(*GitHubIssueQuery)) *GitHubUserQuery {
+	query := &GitHubIssueQuery{config: ghuq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghuq.withAssignedIssues = query
+	return ghuq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -254,12 +365,12 @@ func (ghuq *GitHubUserQuery) Clone() *GitHubUserQuery {
 // Example:
 //
 //	var v []struct {
-//		Login string `json:"login,omitempty"`
+//		GithubID int `json:"github_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.GitHubUser.Query().
-//		GroupBy(githubuser.FieldLogin).
+//		GroupBy(githubuser.FieldGithubID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -281,11 +392,11 @@ func (ghuq *GitHubUserQuery) GroupBy(field string, fields ...string) *GitHubUser
 // Example:
 //
 //	var v []struct {
-//		Login string `json:"login,omitempty"`
+//		GithubID int `json:"github_id,omitempty"`
 //	}
 //
 //	client.GitHubUser.Query().
-//		Select(githubuser.FieldLogin).
+//		Select(githubuser.FieldGithubID).
 //		Scan(ctx, &v)
 //
 func (ghuq *GitHubUserQuery) Select(fields ...string) *GitHubUserSelect {

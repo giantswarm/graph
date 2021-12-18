@@ -10,28 +10,28 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Person {
+func ID(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(id)
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Person {
+func IDEQ(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(p.EQ(id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Person {
+func IDNEQ(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(p.NEQ(id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Person {
+func IDIn(ids ...string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.Person {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Person {
+func IDNotIn(ids ...string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -53,28 +53,28 @@ func IDNotIn(ids ...int) predicate.Person {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Person {
+func IDGT(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(p.GT(id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Person {
+func IDGTE(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(p.GTE(id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Person {
+func IDLT(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(p.LT(id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Person {
+func IDLTE(id string) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		t.HasID(p.LTE(id))
 	})
@@ -285,21 +285,21 @@ func IsGiantSwarmEmployeeNEQ(v bool) predicate.Person {
 	})
 }
 
-// HasGitHubAccount applies the HasEdge predicate on the "gitHubAccount" edge.
-func HasGitHubAccount() predicate.Person {
+// HasGithubAccount applies the HasEdge predicate on the "github_account" edge.
+func HasGithubAccount() predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
-		t.OutE(GitHubAccountLabel).OutV()
+		t.OutE(GithubAccountLabel).OutV()
 	})
 }
 
-// HasGitHubAccountWith applies the HasEdge predicate on the "gitHubAccount" edge with a given conditions (other predicates).
-func HasGitHubAccountWith(preds ...predicate.GitHubUser) predicate.Person {
+// HasGithubAccountWith applies the HasEdge predicate on the "github_account" edge with a given conditions (other predicates).
+func HasGithubAccountWith(preds ...predicate.GitHubUser) predicate.Person {
 	return predicate.Person(func(t *dsl.Traversal) {
 		tr := __.InV()
 		for _, p := range preds {
 			p(tr)
 		}
-		t.OutE(GitHubAccountLabel).Where(tr).OutV()
+		t.OutE(GithubAccountLabel).Where(tr).OutV()
 	})
 }
 

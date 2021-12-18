@@ -10,28 +10,28 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.GitHubIssue {
+func ID(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(id)
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.GitHubIssue {
+func IDEQ(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.EQ(id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.GitHubIssue {
+func IDNEQ(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.NEQ(id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.GitHubIssue {
+func IDIn(ids ...string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.GitHubIssue {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.GitHubIssue {
+func IDNotIn(ids ...string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -53,30 +53,37 @@ func IDNotIn(ids ...int) predicate.GitHubIssue {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.GitHubIssue {
+func IDGT(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.GT(id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.GitHubIssue {
+func IDGTE(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.GTE(id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.GitHubIssue {
+func IDLT(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.LT(id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.GitHubIssue {
+func IDLTE(id string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.LTE(id))
+	})
+}
+
+// GithubID applies equality check predicate on the "github_id" field. It's identical to GithubIDEQ.
+func GithubID(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.EQ(v))
 	})
 }
 
@@ -154,6 +161,70 @@ func ClosedAt(v string) predicate.GitHubIssue {
 func AuthorAssociation(v string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.Has(Label, FieldAuthorAssociation, p.EQ(v))
+	})
+}
+
+// GithubIDEQ applies the EQ predicate on the "github_id" field.
+func GithubIDEQ(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.EQ(v))
+	})
+}
+
+// GithubIDNEQ applies the NEQ predicate on the "github_id" field.
+func GithubIDNEQ(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.NEQ(v))
+	})
+}
+
+// GithubIDIn applies the In predicate on the "github_id" field.
+func GithubIDIn(vs ...int) predicate.GitHubIssue {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.Within(v...))
+	})
+}
+
+// GithubIDNotIn applies the NotIn predicate on the "github_id" field.
+func GithubIDNotIn(vs ...int) predicate.GitHubIssue {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.Without(v...))
+	})
+}
+
+// GithubIDGT applies the GT predicate on the "github_id" field.
+func GithubIDGT(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.GT(v))
+	})
+}
+
+// GithubIDGTE applies the GTE predicate on the "github_id" field.
+func GithubIDGTE(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.GTE(v))
+	})
+}
+
+// GithubIDLT applies the LT predicate on the "github_id" field.
+func GithubIDLT(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.LT(v))
+	})
+}
+
+// GithubIDLTE applies the LTE predicate on the "github_id" field.
+func GithubIDLTE(v int) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.Has(Label, FieldGithubID, p.LTE(v))
 	})
 }
 
@@ -1012,6 +1083,60 @@ func AuthorAssociationHasPrefix(v string) predicate.GitHubIssue {
 func AuthorAssociationHasSuffix(v string) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.Has(Label, FieldAuthorAssociation, p.EndingWith(v))
+	})
+}
+
+// HasAssignee applies the HasEdge predicate on the "assignee" edge.
+func HasAssignee() predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.OutE(AssigneeLabel).OutV()
+	})
+}
+
+// HasAssigneeWith applies the HasEdge predicate on the "assignee" edge with a given conditions (other predicates).
+func HasAssigneeWith(preds ...predicate.GitHubUser) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		tr := __.InV()
+		for _, p := range preds {
+			p(tr)
+		}
+		t.OutE(AssigneeLabel).Where(tr).OutV()
+	})
+}
+
+// HasAuthor applies the HasEdge predicate on the "author" edge.
+func HasAuthor() predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.InE(AuthorInverseLabel).InV()
+	})
+}
+
+// HasAuthorWith applies the HasEdge predicate on the "author" edge with a given conditions (other predicates).
+func HasAuthorWith(preds ...predicate.GitHubUser) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		tr := __.OutV()
+		for _, p := range preds {
+			p(tr)
+		}
+		t.InE(AuthorInverseLabel).Where(tr).InV()
+	})
+}
+
+// HasClosedBy applies the HasEdge predicate on the "closed_by" edge.
+func HasClosedBy() predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		t.InE(ClosedByInverseLabel).InV()
+	})
+}
+
+// HasClosedByWith applies the HasEdge predicate on the "closed_by" edge with a given conditions (other predicates).
+func HasClosedByWith(preds ...predicate.GitHubUser) predicate.GitHubIssue {
+	return predicate.GitHubIssue(func(t *dsl.Traversal) {
+		tr := __.OutV()
+		for _, p := range preds {
+			p(tr)
+		}
+		t.InE(ClosedByInverseLabel).Where(tr).InV()
 	})
 }
 

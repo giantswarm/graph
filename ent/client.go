@@ -257,7 +257,7 @@ func (c *GitHubIssueClient) UpdateOne(ghi *GitHubIssue) *GitHubIssueUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *GitHubIssueClient) UpdateOneID(id int) *GitHubIssueUpdateOne {
+func (c *GitHubIssueClient) UpdateOneID(id string) *GitHubIssueUpdateOne {
 	mutation := newGitHubIssueMutation(c.config, OpUpdateOne, withGitHubIssueID(id))
 	return &GitHubIssueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -274,7 +274,7 @@ func (c *GitHubIssueClient) DeleteOne(ghi *GitHubIssue) *GitHubIssueDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *GitHubIssueClient) DeleteOneID(id int) *GitHubIssueDeleteOne {
+func (c *GitHubIssueClient) DeleteOneID(id string) *GitHubIssueDeleteOne {
 	builder := c.Delete().Where(githubissue.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -289,17 +289,50 @@ func (c *GitHubIssueClient) Query() *GitHubIssueQuery {
 }
 
 // Get returns a GitHubIssue entity by its id.
-func (c *GitHubIssueClient) Get(ctx context.Context, id int) (*GitHubIssue, error) {
+func (c *GitHubIssueClient) Get(ctx context.Context, id string) (*GitHubIssue, error) {
 	return c.Query().Where(githubissue.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *GitHubIssueClient) GetX(ctx context.Context, id int) *GitHubIssue {
+func (c *GitHubIssueClient) GetX(ctx context.Context, id string) *GitHubIssue {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryAssignee queries the assignee edge of a GitHubIssue.
+func (c *GitHubIssueClient) QueryAssignee(ghi *GitHubIssue) *GitHubUserQuery {
+	query := &GitHubUserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghi.ID).OutE(githubissue.AssigneeLabel).InV()
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAuthor queries the author edge of a GitHubIssue.
+func (c *GitHubIssueClient) QueryAuthor(ghi *GitHubIssue) *GitHubUserQuery {
+	query := &GitHubUserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghi.ID).InE(githubuser.CreatedIssuesLabel).OutV()
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryClosedBy queries the closed_by edge of a GitHubIssue.
+func (c *GitHubIssueClient) QueryClosedBy(ghi *GitHubIssue) *GitHubUserQuery {
+	query := &GitHubUserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghi.ID).InE(githubuser.ClosedIssuesLabel).OutV()
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -347,7 +380,7 @@ func (c *GitHubUserClient) UpdateOne(ghu *GitHubUser) *GitHubUserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *GitHubUserClient) UpdateOneID(id int) *GitHubUserUpdateOne {
+func (c *GitHubUserClient) UpdateOneID(id string) *GitHubUserUpdateOne {
 	mutation := newGitHubUserMutation(c.config, OpUpdateOne, withGitHubUserID(id))
 	return &GitHubUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -364,7 +397,7 @@ func (c *GitHubUserClient) DeleteOne(ghu *GitHubUser) *GitHubUserDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *GitHubUserClient) DeleteOneID(id int) *GitHubUserDeleteOne {
+func (c *GitHubUserClient) DeleteOneID(id string) *GitHubUserDeleteOne {
 	builder := c.Delete().Where(githubuser.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -379,17 +412,61 @@ func (c *GitHubUserClient) Query() *GitHubUserQuery {
 }
 
 // Get returns a GitHubUser entity by its id.
-func (c *GitHubUserClient) Get(ctx context.Context, id int) (*GitHubUser, error) {
+func (c *GitHubUserClient) Get(ctx context.Context, id string) (*GitHubUser, error) {
 	return c.Query().Where(githubuser.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *GitHubUserClient) GetX(ctx context.Context, id int) *GitHubUser {
+func (c *GitHubUserClient) GetX(ctx context.Context, id string) *GitHubUser {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryCreatedIssues queries the created_issues edge of a GitHubUser.
+func (c *GitHubUserClient) QueryCreatedIssues(ghu *GitHubUser) *GitHubIssueQuery {
+	query := &GitHubIssueQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghu.ID).OutE(githubuser.CreatedIssuesLabel).InV()
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryClosedIssues queries the closed_issues edge of a GitHubUser.
+func (c *GitHubUserClient) QueryClosedIssues(ghu *GitHubUser) *GitHubIssueQuery {
+	query := &GitHubIssueQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghu.ID).OutE(githubuser.ClosedIssuesLabel).InV()
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPerson queries the person edge of a GitHubUser.
+func (c *GitHubUserClient) QueryPerson(ghu *GitHubUser) *PersonQuery {
+	query := &PersonQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghu.ID).InE(person.GithubAccountLabel).OutV()
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAssignedIssues queries the assigned_issues edge of a GitHubUser.
+func (c *GitHubUserClient) QueryAssignedIssues(ghu *GitHubUser) *GitHubIssueQuery {
+	query := &GitHubIssueQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
+
+		fromV = g.V(ghu.ID).InE(githubissue.AssigneeLabel).OutV()
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -437,7 +514,7 @@ func (c *PersonClient) UpdateOne(pe *Person) *PersonUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *PersonClient) UpdateOneID(id int) *PersonUpdateOne {
+func (c *PersonClient) UpdateOneID(id string) *PersonUpdateOne {
 	mutation := newPersonMutation(c.config, OpUpdateOne, withPersonID(id))
 	return &PersonUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -454,7 +531,7 @@ func (c *PersonClient) DeleteOne(pe *Person) *PersonDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *PersonClient) DeleteOneID(id int) *PersonDeleteOne {
+func (c *PersonClient) DeleteOneID(id string) *PersonDeleteOne {
 	builder := c.Delete().Where(person.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -469,12 +546,12 @@ func (c *PersonClient) Query() *PersonQuery {
 }
 
 // Get returns a Person entity by its id.
-func (c *PersonClient) Get(ctx context.Context, id int) (*Person, error) {
+func (c *PersonClient) Get(ctx context.Context, id string) (*Person, error) {
 	return c.Query().Where(person.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *PersonClient) GetX(ctx context.Context, id int) *Person {
+func (c *PersonClient) GetX(ctx context.Context, id string) *Person {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -482,12 +559,12 @@ func (c *PersonClient) GetX(ctx context.Context, id int) *Person {
 	return obj
 }
 
-// QueryGitHubAccount queries the gitHubAccount edge of a Person.
-func (c *PersonClient) QueryGitHubAccount(pe *Person) *GitHubUserQuery {
+// QueryGithubAccount queries the github_account edge of a Person.
+func (c *PersonClient) QueryGithubAccount(pe *Person) *GitHubUserQuery {
 	query := &GitHubUserQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
 
-		fromV = g.V(pe.ID).OutE(person.GitHubAccountLabel).InV()
+		fromV = g.V(pe.ID).OutE(person.GithubAccountLabel).InV()
 		return fromV, nil
 	}
 	return query

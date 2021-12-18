@@ -14,6 +14,8 @@ type Person struct {
 // Fields of the Person.
 func (Person) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("id").Unique(),
+
 		field.String("email").Unique(),
 		field.String("name"),
 		field.Bool("isGiantSwarmEmployee"),
@@ -23,6 +25,6 @@ func (Person) Fields() []ent.Field {
 // Edges of the Person.
 func (Person) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("gitHubAccount", GitHubUser.Type).Unique(),
+		edge.To("github_account", GitHubUser.Type).Unique(),
 	}
 }

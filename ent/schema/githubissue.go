@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -13,7 +14,9 @@ type GitHubIssue struct {
 // Fields of the GitHubIssue.
 func (GitHubIssue) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("id").Positive().Unique(),
+		field.String("id").NotEmpty().Unique(),
+
+		field.Int("github_id").Positive().Unique(),
 		field.Int("number").Positive(),
 		field.String("title").NotEmpty(),
 		field.String("body"),
@@ -40,5 +43,14 @@ func (GitHubIssue) Fields() []ent.Field {
 
 // Edges of the GitHubIssue.
 func (GitHubIssue) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		// out edges
+		edge.To("assignee", GitHubUser.Type),
+
+		// in (inverse) edges
+		edge.From("author", GitHubUser.Type).Ref("created_issues").Unique().Required(),
+
+		// GitHub user that closed this issue
+		edge.From("closed_by", GitHubUser.Type).Ref("closed_issues").Unique(),
+	}
 }

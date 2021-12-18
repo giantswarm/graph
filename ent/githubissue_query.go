@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/gremlin/graph/dsl/__"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/g"
 	"github.com/giantswarm/graph/ent/githubissue"
+	"github.com/giantswarm/graph/ent/githubuser"
 	"github.com/giantswarm/graph/ent/predicate"
 )
 
@@ -25,6 +26,10 @@ type GitHubIssueQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.GitHubIssue
+	// eager-loading edges.
+	withAssignee *GitHubUserQuery
+	withAuthor   *GitHubUserQuery
+	withClosedBy *GitHubUserQuery
 	// intermediate query (i.e. traversal path).
 	gremlin *dsl.Traversal
 	path    func(context.Context) (*dsl.Traversal, error)
@@ -61,6 +66,48 @@ func (ghiq *GitHubIssueQuery) Order(o ...OrderFunc) *GitHubIssueQuery {
 	return ghiq
 }
 
+// QueryAssignee chains the current query on the "assignee" edge.
+func (ghiq *GitHubIssueQuery) QueryAssignee() *GitHubUserQuery {
+	query := &GitHubUserQuery{config: ghiq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghiq.gremlinQuery(ctx)
+		fromU = gremlin.OutE(githubissue.AssigneeLabel).InV()
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAuthor chains the current query on the "author" edge.
+func (ghiq *GitHubIssueQuery) QueryAuthor() *GitHubUserQuery {
+	query := &GitHubUserQuery{config: ghiq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghiq.gremlinQuery(ctx)
+		fromU = gremlin.InE(githubuser.CreatedIssuesLabel).OutV()
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryClosedBy chains the current query on the "closed_by" edge.
+func (ghiq *GitHubIssueQuery) QueryClosedBy() *GitHubUserQuery {
+	query := &GitHubUserQuery{config: ghiq.config}
+	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
+		if err := ghiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		gremlin := ghiq.gremlinQuery(ctx)
+		fromU = gremlin.InE(githubuser.ClosedIssuesLabel).OutV()
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first GitHubIssue entity from the query.
 // Returns a *NotFoundError when no GitHubIssue was found.
 func (ghiq *GitHubIssueQuery) First(ctx context.Context) (*GitHubIssue, error) {
@@ -85,8 +132,8 @@ func (ghiq *GitHubIssueQuery) FirstX(ctx context.Context) *GitHubIssue {
 
 // FirstID returns the first GitHubIssue ID from the query.
 // Returns a *NotFoundError when no GitHubIssue ID was found.
-func (ghiq *GitHubIssueQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (ghiq *GitHubIssueQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = ghiq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -98,7 +145,7 @@ func (ghiq *GitHubIssueQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (ghiq *GitHubIssueQuery) FirstIDX(ctx context.Context) int {
+func (ghiq *GitHubIssueQuery) FirstIDX(ctx context.Context) string {
 	id, err := ghiq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -136,8 +183,8 @@ func (ghiq *GitHubIssueQuery) OnlyX(ctx context.Context) *GitHubIssue {
 // OnlyID is like Only, but returns the only GitHubIssue ID in the query.
 // Returns a *NotSingularError when exactly one GitHubIssue ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (ghiq *GitHubIssueQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (ghiq *GitHubIssueQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = ghiq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -153,7 +200,7 @@ func (ghiq *GitHubIssueQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (ghiq *GitHubIssueQuery) OnlyIDX(ctx context.Context) int {
+func (ghiq *GitHubIssueQuery) OnlyIDX(ctx context.Context) string {
 	id, err := ghiq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -179,8 +226,8 @@ func (ghiq *GitHubIssueQuery) AllX(ctx context.Context) []*GitHubIssue {
 }
 
 // IDs executes the query and returns a list of GitHubIssue IDs.
-func (ghiq *GitHubIssueQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (ghiq *GitHubIssueQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := ghiq.Select(githubissue.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -188,7 +235,7 @@ func (ghiq *GitHubIssueQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ghiq *GitHubIssueQuery) IDsX(ctx context.Context) []int {
+func (ghiq *GitHubIssueQuery) IDsX(ctx context.Context) []string {
 	ids, err := ghiq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -237,15 +284,51 @@ func (ghiq *GitHubIssueQuery) Clone() *GitHubIssueQuery {
 		return nil
 	}
 	return &GitHubIssueQuery{
-		config:     ghiq.config,
-		limit:      ghiq.limit,
-		offset:     ghiq.offset,
-		order:      append([]OrderFunc{}, ghiq.order...),
-		predicates: append([]predicate.GitHubIssue{}, ghiq.predicates...),
+		config:       ghiq.config,
+		limit:        ghiq.limit,
+		offset:       ghiq.offset,
+		order:        append([]OrderFunc{}, ghiq.order...),
+		predicates:   append([]predicate.GitHubIssue{}, ghiq.predicates...),
+		withAssignee: ghiq.withAssignee.Clone(),
+		withAuthor:   ghiq.withAuthor.Clone(),
+		withClosedBy: ghiq.withClosedBy.Clone(),
 		// clone intermediate query.
 		gremlin: ghiq.gremlin.Clone(),
 		path:    ghiq.path,
 	}
+}
+
+// WithAssignee tells the query-builder to eager-load the nodes that are connected to
+// the "assignee" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghiq *GitHubIssueQuery) WithAssignee(opts ...func(*GitHubUserQuery)) *GitHubIssueQuery {
+	query := &GitHubUserQuery{config: ghiq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghiq.withAssignee = query
+	return ghiq
+}
+
+// WithAuthor tells the query-builder to eager-load the nodes that are connected to
+// the "author" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghiq *GitHubIssueQuery) WithAuthor(opts ...func(*GitHubUserQuery)) *GitHubIssueQuery {
+	query := &GitHubUserQuery{config: ghiq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghiq.withAuthor = query
+	return ghiq
+}
+
+// WithClosedBy tells the query-builder to eager-load the nodes that are connected to
+// the "closed_by" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghiq *GitHubIssueQuery) WithClosedBy(opts ...func(*GitHubUserQuery)) *GitHubIssueQuery {
+	query := &GitHubUserQuery{config: ghiq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ghiq.withClosedBy = query
+	return ghiq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -254,12 +337,12 @@ func (ghiq *GitHubIssueQuery) Clone() *GitHubIssueQuery {
 // Example:
 //
 //	var v []struct {
-//		Number int `json:"number,omitempty"`
+//		GithubID int `json:"github_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.GitHubIssue.Query().
-//		GroupBy(githubissue.FieldNumber).
+//		GroupBy(githubissue.FieldGithubID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -281,11 +364,11 @@ func (ghiq *GitHubIssueQuery) GroupBy(field string, fields ...string) *GitHubIss
 // Example:
 //
 //	var v []struct {
-//		Number int `json:"number,omitempty"`
+//		GithubID int `json:"github_id,omitempty"`
 //	}
 //
 //	client.GitHubIssue.Query().
-//		Select(githubissue.FieldNumber).
+//		Select(githubissue.FieldGithubID).
 //		Scan(ctx, &v)
 //
 func (ghiq *GitHubIssueQuery) Select(fields ...string) *GitHubIssueSelect {

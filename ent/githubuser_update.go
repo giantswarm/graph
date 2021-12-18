@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/gremlin/graph/dsl/__"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/g"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/p"
+	"github.com/giantswarm/graph/ent/githubissue"
 	"github.com/giantswarm/graph/ent/githubuser"
+	"github.com/giantswarm/graph/ent/person"
 	"github.com/giantswarm/graph/ent/predicate"
 )
 
@@ -25,6 +27,19 @@ type GitHubUserUpdate struct {
 // Where appends a list predicates to the GitHubUserUpdate builder.
 func (ghuu *GitHubUserUpdate) Where(ps ...predicate.GitHubUser) *GitHubUserUpdate {
 	ghuu.mutation.Where(ps...)
+	return ghuu
+}
+
+// SetGithubID sets the "github_id" field.
+func (ghuu *GitHubUserUpdate) SetGithubID(i int) *GitHubUserUpdate {
+	ghuu.mutation.ResetGithubID()
+	ghuu.mutation.SetGithubID(i)
+	return ghuu
+}
+
+// AddGithubID adds i to the "github_id" field.
+func (ghuu *GitHubUserUpdate) AddGithubID(i int) *GitHubUserUpdate {
+	ghuu.mutation.AddGithubID(i)
 	return ghuu
 }
 
@@ -46,9 +61,142 @@ func (ghuu *GitHubUserUpdate) SetName(s string) *GitHubUserUpdate {
 	return ghuu
 }
 
+// AddCreatedIssueIDs adds the "created_issues" edge to the GitHubIssue entity by IDs.
+func (ghuu *GitHubUserUpdate) AddCreatedIssueIDs(ids ...string) *GitHubUserUpdate {
+	ghuu.mutation.AddCreatedIssueIDs(ids...)
+	return ghuu
+}
+
+// AddCreatedIssues adds the "created_issues" edges to the GitHubIssue entity.
+func (ghuu *GitHubUserUpdate) AddCreatedIssues(g ...*GitHubIssue) *GitHubUserUpdate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuu.AddCreatedIssueIDs(ids...)
+}
+
+// AddClosedIssueIDs adds the "closed_issues" edge to the GitHubIssue entity by IDs.
+func (ghuu *GitHubUserUpdate) AddClosedIssueIDs(ids ...string) *GitHubUserUpdate {
+	ghuu.mutation.AddClosedIssueIDs(ids...)
+	return ghuu
+}
+
+// AddClosedIssues adds the "closed_issues" edges to the GitHubIssue entity.
+func (ghuu *GitHubUserUpdate) AddClosedIssues(g ...*GitHubIssue) *GitHubUserUpdate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuu.AddClosedIssueIDs(ids...)
+}
+
+// SetPersonID sets the "person" edge to the Person entity by ID.
+func (ghuu *GitHubUserUpdate) SetPersonID(id string) *GitHubUserUpdate {
+	ghuu.mutation.SetPersonID(id)
+	return ghuu
+}
+
+// SetNillablePersonID sets the "person" edge to the Person entity by ID if the given value is not nil.
+func (ghuu *GitHubUserUpdate) SetNillablePersonID(id *string) *GitHubUserUpdate {
+	if id != nil {
+		ghuu = ghuu.SetPersonID(*id)
+	}
+	return ghuu
+}
+
+// SetPerson sets the "person" edge to the Person entity.
+func (ghuu *GitHubUserUpdate) SetPerson(p *Person) *GitHubUserUpdate {
+	return ghuu.SetPersonID(p.ID)
+}
+
+// AddAssignedIssueIDs adds the "assigned_issues" edge to the GitHubIssue entity by IDs.
+func (ghuu *GitHubUserUpdate) AddAssignedIssueIDs(ids ...string) *GitHubUserUpdate {
+	ghuu.mutation.AddAssignedIssueIDs(ids...)
+	return ghuu
+}
+
+// AddAssignedIssues adds the "assigned_issues" edges to the GitHubIssue entity.
+func (ghuu *GitHubUserUpdate) AddAssignedIssues(g ...*GitHubIssue) *GitHubUserUpdate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuu.AddAssignedIssueIDs(ids...)
+}
+
 // Mutation returns the GitHubUserMutation object of the builder.
 func (ghuu *GitHubUserUpdate) Mutation() *GitHubUserMutation {
 	return ghuu.mutation
+}
+
+// ClearCreatedIssues clears all "created_issues" edges to the GitHubIssue entity.
+func (ghuu *GitHubUserUpdate) ClearCreatedIssues() *GitHubUserUpdate {
+	ghuu.mutation.ClearCreatedIssues()
+	return ghuu
+}
+
+// RemoveCreatedIssueIDs removes the "created_issues" edge to GitHubIssue entities by IDs.
+func (ghuu *GitHubUserUpdate) RemoveCreatedIssueIDs(ids ...string) *GitHubUserUpdate {
+	ghuu.mutation.RemoveCreatedIssueIDs(ids...)
+	return ghuu
+}
+
+// RemoveCreatedIssues removes "created_issues" edges to GitHubIssue entities.
+func (ghuu *GitHubUserUpdate) RemoveCreatedIssues(g ...*GitHubIssue) *GitHubUserUpdate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuu.RemoveCreatedIssueIDs(ids...)
+}
+
+// ClearClosedIssues clears all "closed_issues" edges to the GitHubIssue entity.
+func (ghuu *GitHubUserUpdate) ClearClosedIssues() *GitHubUserUpdate {
+	ghuu.mutation.ClearClosedIssues()
+	return ghuu
+}
+
+// RemoveClosedIssueIDs removes the "closed_issues" edge to GitHubIssue entities by IDs.
+func (ghuu *GitHubUserUpdate) RemoveClosedIssueIDs(ids ...string) *GitHubUserUpdate {
+	ghuu.mutation.RemoveClosedIssueIDs(ids...)
+	return ghuu
+}
+
+// RemoveClosedIssues removes "closed_issues" edges to GitHubIssue entities.
+func (ghuu *GitHubUserUpdate) RemoveClosedIssues(g ...*GitHubIssue) *GitHubUserUpdate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuu.RemoveClosedIssueIDs(ids...)
+}
+
+// ClearPerson clears the "person" edge to the Person entity.
+func (ghuu *GitHubUserUpdate) ClearPerson() *GitHubUserUpdate {
+	ghuu.mutation.ClearPerson()
+	return ghuu
+}
+
+// ClearAssignedIssues clears all "assigned_issues" edges to the GitHubIssue entity.
+func (ghuu *GitHubUserUpdate) ClearAssignedIssues() *GitHubUserUpdate {
+	ghuu.mutation.ClearAssignedIssues()
+	return ghuu
+}
+
+// RemoveAssignedIssueIDs removes the "assigned_issues" edge to GitHubIssue entities by IDs.
+func (ghuu *GitHubUserUpdate) RemoveAssignedIssueIDs(ids ...string) *GitHubUserUpdate {
+	ghuu.mutation.RemoveAssignedIssueIDs(ids...)
+	return ghuu
+}
+
+// RemoveAssignedIssues removes "assigned_issues" edges to GitHubIssue entities.
+func (ghuu *GitHubUserUpdate) RemoveAssignedIssues(g ...*GitHubIssue) *GitHubUserUpdate {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuu.RemoveAssignedIssueIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -58,12 +206,18 @@ func (ghuu *GitHubUserUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(ghuu.hooks) == 0 {
+		if err = ghuu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = ghuu.gremlinSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*GitHubUserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = ghuu.check(); err != nil {
+				return 0, err
 			}
 			ghuu.mutation = mutation
 			affected, err = ghuu.gremlinSave(ctx)
@@ -105,6 +259,16 @@ func (ghuu *GitHubUserUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ghuu *GitHubUserUpdate) check() error {
+	if v, ok := ghuu.mutation.GithubID(); ok {
+		if err := githubuser.GithubIDValidator(v); err != nil {
+			return &ValidationError{Name: "github_id", err: fmt.Errorf("ent: validator failed for field \"github_id\": %w", err)}
+		}
+	}
+	return nil
+}
+
 func (ghuu *GitHubUserUpdate) gremlinSave(ctx context.Context) (int, error) {
 	res := &gremlin.Response{}
 	query, bindings := ghuu.gremlin().Query()
@@ -122,7 +286,7 @@ func (ghuu *GitHubUserUpdate) gremlin() *dsl.Traversal {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
 	}
-	constraints := make([]*constraint, 0, 2)
+	constraints := make([]*constraint, 0, 6)
 	v := g.V().HasLabel(githubuser.Label)
 	for _, p := range ghuu.mutation.predicates {
 		p(v)
@@ -133,6 +297,21 @@ func (ghuu *GitHubUserUpdate) gremlin() *dsl.Traversal {
 
 		trs []*dsl.Traversal
 	)
+	if value, ok := ghuu.mutation.GithubID(); ok {
+		constraints = append(constraints, &constraint{
+			pred: g.V().Has(githubuser.Label, githubuser.FieldGithubID, value).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldGithubID, value)),
+		})
+		v.Property(dsl.Single, githubuser.FieldGithubID, value)
+	}
+	if value, ok := ghuu.mutation.AddedGithubID(); ok {
+		addValue := rv.Clone().Union(__.Values(githubuser.FieldGithubID), __.Constant(value)).Sum().Next()
+		constraints = append(constraints, &constraint{
+			pred: g.V().Has(githubuser.Label, githubuser.FieldGithubID, addValue).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldGithubID, fmt.Sprintf("+= %v", value))),
+		})
+		v.Property(dsl.Single, githubuser.FieldGithubID, __.Union(__.Values(githubuser.FieldGithubID), __.Constant(value)).Sum())
+	}
 	if value, ok := ghuu.mutation.Login(); ok {
 		constraints = append(constraints, &constraint{
 			pred: g.V().Has(githubuser.Label, githubuser.FieldLogin, value).Count(),
@@ -149,6 +328,46 @@ func (ghuu *GitHubUserUpdate) gremlin() *dsl.Traversal {
 	}
 	if value, ok := ghuu.mutation.Name(); ok {
 		v.Property(dsl.Single, githubuser.FieldName, value)
+	}
+	for _, id := range ghuu.mutation.RemovedCreatedIssuesIDs() {
+		tr := rv.Clone().OutE(githubuser.CreatedIssuesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuu.mutation.CreatedIssuesIDs() {
+		v.AddE(githubuser.CreatedIssuesLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(githubuser.CreatedIssuesLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.CreatedIssuesLabel, id)),
+		})
+	}
+	for _, id := range ghuu.mutation.RemovedClosedIssuesIDs() {
+		tr := rv.Clone().OutE(githubuser.ClosedIssuesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuu.mutation.ClosedIssuesIDs() {
+		v.AddE(githubuser.ClosedIssuesLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(githubuser.ClosedIssuesLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.ClosedIssuesLabel, id)),
+		})
+	}
+	if ghuu.mutation.PersonCleared() {
+		tr := rv.Clone().InE(person.GithubAccountLabel).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuu.mutation.PersonIDs() {
+		v.AddE(person.GithubAccountLabel).From(g.V(id)).InV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(person.GithubAccountLabel).OutV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, person.GithubAccountLabel, id)),
+		})
+	}
+	for _, id := range ghuu.mutation.RemovedAssignedIssuesIDs() {
+		tr := rv.Clone().InE(githubissue.AssigneeLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuu.mutation.AssignedIssuesIDs() {
+		v.AddE(githubissue.AssigneeLabel).From(g.V(id)).InV()
 	}
 	v.Count()
 	if len(constraints) > 0 {
@@ -173,6 +392,19 @@ type GitHubUserUpdateOne struct {
 	mutation *GitHubUserMutation
 }
 
+// SetGithubID sets the "github_id" field.
+func (ghuuo *GitHubUserUpdateOne) SetGithubID(i int) *GitHubUserUpdateOne {
+	ghuuo.mutation.ResetGithubID()
+	ghuuo.mutation.SetGithubID(i)
+	return ghuuo
+}
+
+// AddGithubID adds i to the "github_id" field.
+func (ghuuo *GitHubUserUpdateOne) AddGithubID(i int) *GitHubUserUpdateOne {
+	ghuuo.mutation.AddGithubID(i)
+	return ghuuo
+}
+
 // SetLogin sets the "login" field.
 func (ghuuo *GitHubUserUpdateOne) SetLogin(s string) *GitHubUserUpdateOne {
 	ghuuo.mutation.SetLogin(s)
@@ -191,9 +423,142 @@ func (ghuuo *GitHubUserUpdateOne) SetName(s string) *GitHubUserUpdateOne {
 	return ghuuo
 }
 
+// AddCreatedIssueIDs adds the "created_issues" edge to the GitHubIssue entity by IDs.
+func (ghuuo *GitHubUserUpdateOne) AddCreatedIssueIDs(ids ...string) *GitHubUserUpdateOne {
+	ghuuo.mutation.AddCreatedIssueIDs(ids...)
+	return ghuuo
+}
+
+// AddCreatedIssues adds the "created_issues" edges to the GitHubIssue entity.
+func (ghuuo *GitHubUserUpdateOne) AddCreatedIssues(g ...*GitHubIssue) *GitHubUserUpdateOne {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuuo.AddCreatedIssueIDs(ids...)
+}
+
+// AddClosedIssueIDs adds the "closed_issues" edge to the GitHubIssue entity by IDs.
+func (ghuuo *GitHubUserUpdateOne) AddClosedIssueIDs(ids ...string) *GitHubUserUpdateOne {
+	ghuuo.mutation.AddClosedIssueIDs(ids...)
+	return ghuuo
+}
+
+// AddClosedIssues adds the "closed_issues" edges to the GitHubIssue entity.
+func (ghuuo *GitHubUserUpdateOne) AddClosedIssues(g ...*GitHubIssue) *GitHubUserUpdateOne {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuuo.AddClosedIssueIDs(ids...)
+}
+
+// SetPersonID sets the "person" edge to the Person entity by ID.
+func (ghuuo *GitHubUserUpdateOne) SetPersonID(id string) *GitHubUserUpdateOne {
+	ghuuo.mutation.SetPersonID(id)
+	return ghuuo
+}
+
+// SetNillablePersonID sets the "person" edge to the Person entity by ID if the given value is not nil.
+func (ghuuo *GitHubUserUpdateOne) SetNillablePersonID(id *string) *GitHubUserUpdateOne {
+	if id != nil {
+		ghuuo = ghuuo.SetPersonID(*id)
+	}
+	return ghuuo
+}
+
+// SetPerson sets the "person" edge to the Person entity.
+func (ghuuo *GitHubUserUpdateOne) SetPerson(p *Person) *GitHubUserUpdateOne {
+	return ghuuo.SetPersonID(p.ID)
+}
+
+// AddAssignedIssueIDs adds the "assigned_issues" edge to the GitHubIssue entity by IDs.
+func (ghuuo *GitHubUserUpdateOne) AddAssignedIssueIDs(ids ...string) *GitHubUserUpdateOne {
+	ghuuo.mutation.AddAssignedIssueIDs(ids...)
+	return ghuuo
+}
+
+// AddAssignedIssues adds the "assigned_issues" edges to the GitHubIssue entity.
+func (ghuuo *GitHubUserUpdateOne) AddAssignedIssues(g ...*GitHubIssue) *GitHubUserUpdateOne {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuuo.AddAssignedIssueIDs(ids...)
+}
+
 // Mutation returns the GitHubUserMutation object of the builder.
 func (ghuuo *GitHubUserUpdateOne) Mutation() *GitHubUserMutation {
 	return ghuuo.mutation
+}
+
+// ClearCreatedIssues clears all "created_issues" edges to the GitHubIssue entity.
+func (ghuuo *GitHubUserUpdateOne) ClearCreatedIssues() *GitHubUserUpdateOne {
+	ghuuo.mutation.ClearCreatedIssues()
+	return ghuuo
+}
+
+// RemoveCreatedIssueIDs removes the "created_issues" edge to GitHubIssue entities by IDs.
+func (ghuuo *GitHubUserUpdateOne) RemoveCreatedIssueIDs(ids ...string) *GitHubUserUpdateOne {
+	ghuuo.mutation.RemoveCreatedIssueIDs(ids...)
+	return ghuuo
+}
+
+// RemoveCreatedIssues removes "created_issues" edges to GitHubIssue entities.
+func (ghuuo *GitHubUserUpdateOne) RemoveCreatedIssues(g ...*GitHubIssue) *GitHubUserUpdateOne {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuuo.RemoveCreatedIssueIDs(ids...)
+}
+
+// ClearClosedIssues clears all "closed_issues" edges to the GitHubIssue entity.
+func (ghuuo *GitHubUserUpdateOne) ClearClosedIssues() *GitHubUserUpdateOne {
+	ghuuo.mutation.ClearClosedIssues()
+	return ghuuo
+}
+
+// RemoveClosedIssueIDs removes the "closed_issues" edge to GitHubIssue entities by IDs.
+func (ghuuo *GitHubUserUpdateOne) RemoveClosedIssueIDs(ids ...string) *GitHubUserUpdateOne {
+	ghuuo.mutation.RemoveClosedIssueIDs(ids...)
+	return ghuuo
+}
+
+// RemoveClosedIssues removes "closed_issues" edges to GitHubIssue entities.
+func (ghuuo *GitHubUserUpdateOne) RemoveClosedIssues(g ...*GitHubIssue) *GitHubUserUpdateOne {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuuo.RemoveClosedIssueIDs(ids...)
+}
+
+// ClearPerson clears the "person" edge to the Person entity.
+func (ghuuo *GitHubUserUpdateOne) ClearPerson() *GitHubUserUpdateOne {
+	ghuuo.mutation.ClearPerson()
+	return ghuuo
+}
+
+// ClearAssignedIssues clears all "assigned_issues" edges to the GitHubIssue entity.
+func (ghuuo *GitHubUserUpdateOne) ClearAssignedIssues() *GitHubUserUpdateOne {
+	ghuuo.mutation.ClearAssignedIssues()
+	return ghuuo
+}
+
+// RemoveAssignedIssueIDs removes the "assigned_issues" edge to GitHubIssue entities by IDs.
+func (ghuuo *GitHubUserUpdateOne) RemoveAssignedIssueIDs(ids ...string) *GitHubUserUpdateOne {
+	ghuuo.mutation.RemoveAssignedIssueIDs(ids...)
+	return ghuuo
+}
+
+// RemoveAssignedIssues removes "assigned_issues" edges to GitHubIssue entities.
+func (ghuuo *GitHubUserUpdateOne) RemoveAssignedIssues(g ...*GitHubIssue) *GitHubUserUpdateOne {
+	ids := make([]string, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ghuuo.RemoveAssignedIssueIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -210,12 +575,18 @@ func (ghuuo *GitHubUserUpdateOne) Save(ctx context.Context) (*GitHubUser, error)
 		node *GitHubUser
 	)
 	if len(ghuuo.hooks) == 0 {
+		if err = ghuuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = ghuuo.gremlinSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*GitHubUserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = ghuuo.check(); err != nil {
+				return nil, err
 			}
 			ghuuo.mutation = mutation
 			node, err = ghuuo.gremlinSave(ctx)
@@ -257,6 +628,16 @@ func (ghuuo *GitHubUserUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ghuuo *GitHubUserUpdateOne) check() error {
+	if v, ok := ghuuo.mutation.GithubID(); ok {
+		if err := githubuser.GithubIDValidator(v); err != nil {
+			return &ValidationError{Name: "github_id", err: fmt.Errorf("ent: validator failed for field \"github_id\": %w", err)}
+		}
+	}
+	return nil
+}
+
 func (ghuuo *GitHubUserUpdateOne) gremlinSave(ctx context.Context) (*GitHubUser, error) {
 	res := &gremlin.Response{}
 	id, ok := ghuuo.mutation.ID()
@@ -277,12 +658,12 @@ func (ghuuo *GitHubUserUpdateOne) gremlinSave(ctx context.Context) (*GitHubUser,
 	return ghu, nil
 }
 
-func (ghuuo *GitHubUserUpdateOne) gremlin(id int) *dsl.Traversal {
+func (ghuuo *GitHubUserUpdateOne) gremlin(id string) *dsl.Traversal {
 	type constraint struct {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
 	}
-	constraints := make([]*constraint, 0, 2)
+	constraints := make([]*constraint, 0, 6)
 	v := g.V(id)
 	var (
 		rv = v.Clone()
@@ -290,6 +671,21 @@ func (ghuuo *GitHubUserUpdateOne) gremlin(id int) *dsl.Traversal {
 
 		trs []*dsl.Traversal
 	)
+	if value, ok := ghuuo.mutation.GithubID(); ok {
+		constraints = append(constraints, &constraint{
+			pred: g.V().Has(githubuser.Label, githubuser.FieldGithubID, value).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldGithubID, value)),
+		})
+		v.Property(dsl.Single, githubuser.FieldGithubID, value)
+	}
+	if value, ok := ghuuo.mutation.AddedGithubID(); ok {
+		addValue := rv.Clone().Union(__.Values(githubuser.FieldGithubID), __.Constant(value)).Sum().Next()
+		constraints = append(constraints, &constraint{
+			pred: g.V().Has(githubuser.Label, githubuser.FieldGithubID, addValue).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldGithubID, fmt.Sprintf("+= %v", value))),
+		})
+		v.Property(dsl.Single, githubuser.FieldGithubID, __.Union(__.Values(githubuser.FieldGithubID), __.Constant(value)).Sum())
+	}
 	if value, ok := ghuuo.mutation.Login(); ok {
 		constraints = append(constraints, &constraint{
 			pred: g.V().Has(githubuser.Label, githubuser.FieldLogin, value).Count(),
@@ -306,6 +702,46 @@ func (ghuuo *GitHubUserUpdateOne) gremlin(id int) *dsl.Traversal {
 	}
 	if value, ok := ghuuo.mutation.Name(); ok {
 		v.Property(dsl.Single, githubuser.FieldName, value)
+	}
+	for _, id := range ghuuo.mutation.RemovedCreatedIssuesIDs() {
+		tr := rv.Clone().OutE(githubuser.CreatedIssuesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuuo.mutation.CreatedIssuesIDs() {
+		v.AddE(githubuser.CreatedIssuesLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(githubuser.CreatedIssuesLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.CreatedIssuesLabel, id)),
+		})
+	}
+	for _, id := range ghuuo.mutation.RemovedClosedIssuesIDs() {
+		tr := rv.Clone().OutE(githubuser.ClosedIssuesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuuo.mutation.ClosedIssuesIDs() {
+		v.AddE(githubuser.ClosedIssuesLabel).To(g.V(id)).OutV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(githubuser.ClosedIssuesLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.ClosedIssuesLabel, id)),
+		})
+	}
+	if ghuuo.mutation.PersonCleared() {
+		tr := rv.Clone().InE(person.GithubAccountLabel).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuuo.mutation.PersonIDs() {
+		v.AddE(person.GithubAccountLabel).From(g.V(id)).InV()
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(person.GithubAccountLabel).OutV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, person.GithubAccountLabel, id)),
+		})
+	}
+	for _, id := range ghuuo.mutation.RemovedAssignedIssuesIDs() {
+		tr := rv.Clone().InE(githubissue.AssigneeLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		trs = append(trs, tr)
+	}
+	for _, id := range ghuuo.mutation.AssignedIssuesIDs() {
+		v.AddE(githubissue.AssigneeLabel).From(g.V(id)).InV()
 	}
 	if len(ghuuo.fields) > 0 {
 		fields := make([]interface{}, 0, len(ghuuo.fields)+1)

@@ -7,10 +7,35 @@ const (
 	Label = "git_hub_user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldGithubID holds the string denoting the github_id field in the database.
+	FieldGithubID = "github_id"
 	// FieldLogin holds the string denoting the login field in the database.
 	FieldLogin = "login"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// EdgeCreatedIssues holds the string denoting the created_issues edge name in mutations.
+	EdgeCreatedIssues = "created_issues"
+	// EdgeClosedIssues holds the string denoting the closed_issues edge name in mutations.
+	EdgeClosedIssues = "closed_issues"
+	// EdgePerson holds the string denoting the person edge name in mutations.
+	EdgePerson = "person"
+	// EdgeAssignedIssues holds the string denoting the assigned_issues edge name in mutations.
+	EdgeAssignedIssues = "assigned_issues"
+	// CreatedIssuesLabel holds the string label denoting the created_issues edge type in the database.
+	CreatedIssuesLabel = "git_hub_user_created_issues"
+	// ClosedIssuesLabel holds the string label denoting the closed_issues edge type in the database.
+	ClosedIssuesLabel = "git_hub_user_closed_issues"
+	// PersonInverseLabel holds the string label denoting the person inverse edge type in the database.
+	PersonInverseLabel = "person_github_account"
+	// AssignedIssuesInverseLabel holds the string label denoting the assigned_issues inverse edge type in the database.
+	AssignedIssuesInverseLabel = "git_hub_issue_assignee"
+)
+
+var (
+	// GithubIDValidator is a validator for the "github_id" field. It is called by the builders before save.
+	GithubIDValidator func(int) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )

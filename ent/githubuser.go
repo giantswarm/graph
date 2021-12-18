@@ -7,19 +7,81 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/gremlin"
+	"github.com/giantswarm/graph/ent/person"
 )
 
 // GitHubUser is the model entity for the GitHubUser schema.
 type GitHubUser struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
+	// GithubID holds the value of the "github_id" field.
+	GithubID int `json:"github_id,omitempty"`
 	// Login holds the value of the "login" field.
 	Login string `json:"login,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the GitHubUserQuery when eager-loading is set.
+	Edges GitHubUserEdges `json:"edges"`
+}
+
+// GitHubUserEdges holds the relations/edges for other nodes in the graph.
+type GitHubUserEdges struct {
+	// CreatedIssues holds the value of the created_issues edge.
+	CreatedIssues []*GitHubIssue `json:"created_issues,omitempty"`
+	// ClosedIssues holds the value of the closed_issues edge.
+	ClosedIssues []*GitHubIssue `json:"closed_issues,omitempty"`
+	// Person holds the value of the person edge.
+	Person *Person `json:"person,omitempty"`
+	// AssignedIssues holds the value of the assigned_issues edge.
+	AssignedIssues []*GitHubIssue `json:"assigned_issues,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// CreatedIssuesOrErr returns the CreatedIssues value or an error if the edge
+// was not loaded in eager-loading.
+func (e GitHubUserEdges) CreatedIssuesOrErr() ([]*GitHubIssue, error) {
+	if e.loadedTypes[0] {
+		return e.CreatedIssues, nil
+	}
+	return nil, &NotLoadedError{edge: "created_issues"}
+}
+
+// ClosedIssuesOrErr returns the ClosedIssues value or an error if the edge
+// was not loaded in eager-loading.
+func (e GitHubUserEdges) ClosedIssuesOrErr() ([]*GitHubIssue, error) {
+	if e.loadedTypes[1] {
+		return e.ClosedIssues, nil
+	}
+	return nil, &NotLoadedError{edge: "closed_issues"}
+}
+
+// PersonOrErr returns the Person value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GitHubUserEdges) PersonOrErr() (*Person, error) {
+	if e.loadedTypes[2] {
+		if e.Person == nil {
+			// The edge person was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: person.Label}
+		}
+		return e.Person, nil
+	}
+	return nil, &NotLoadedError{edge: "person"}
+}
+
+// AssignedIssuesOrErr returns the AssignedIssues value or an error if the edge
+// was not loaded in eager-loading.
+func (e GitHubUserEdges) AssignedIssuesOrErr() ([]*GitHubIssue, error) {
+	if e.loadedTypes[3] {
+		return e.AssignedIssues, nil
+	}
+	return nil, &NotLoadedError{edge: "assigned_issues"}
 }
 
 // FromResponse scans the gremlin response data into GitHubUser.
@@ -29,19 +91,41 @@ func (ghu *GitHubUser) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghu struct {
-		ID    int    `json:"id,omitempty"`
-		Login string `json:"login,omitempty"`
-		Email string `json:"email,omitempty"`
-		Name  string `json:"name,omitempty"`
+		ID       string `json:"id,omitempty"`
+		GithubID int    `json:"github_id,omitempty"`
+		Login    string `json:"login,omitempty"`
+		Email    string `json:"email,omitempty"`
+		Name     string `json:"name,omitempty"`
 	}
 	if err := vmap.Decode(&scanghu); err != nil {
 		return err
 	}
 	ghu.ID = scanghu.ID
+	ghu.GithubID = scanghu.GithubID
 	ghu.Login = scanghu.Login
 	ghu.Email = scanghu.Email
 	ghu.Name = scanghu.Name
 	return nil
+}
+
+// QueryCreatedIssues queries the "created_issues" edge of the GitHubUser entity.
+func (ghu *GitHubUser) QueryCreatedIssues() *GitHubIssueQuery {
+	return (&GitHubUserClient{config: ghu.config}).QueryCreatedIssues(ghu)
+}
+
+// QueryClosedIssues queries the "closed_issues" edge of the GitHubUser entity.
+func (ghu *GitHubUser) QueryClosedIssues() *GitHubIssueQuery {
+	return (&GitHubUserClient{config: ghu.config}).QueryClosedIssues(ghu)
+}
+
+// QueryPerson queries the "person" edge of the GitHubUser entity.
+func (ghu *GitHubUser) QueryPerson() *PersonQuery {
+	return (&GitHubUserClient{config: ghu.config}).QueryPerson(ghu)
+}
+
+// QueryAssignedIssues queries the "assigned_issues" edge of the GitHubUser entity.
+func (ghu *GitHubUser) QueryAssignedIssues() *GitHubIssueQuery {
+	return (&GitHubUserClient{config: ghu.config}).QueryAssignedIssues(ghu)
 }
 
 // Update returns a builder for updating this GitHubUser.
@@ -67,6 +151,8 @@ func (ghu *GitHubUser) String() string {
 	var builder strings.Builder
 	builder.WriteString("GitHubUser(")
 	builder.WriteString(fmt.Sprintf("id=%v", ghu.ID))
+	builder.WriteString(", github_id=")
+	builder.WriteString(fmt.Sprintf("%v", ghu.GithubID))
 	builder.WriteString(", login=")
 	builder.WriteString(ghu.Login)
 	builder.WriteString(", email=")
@@ -87,20 +173,22 @@ func (ghu *GitHubUsers) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghu []struct {
-		ID    int    `json:"id,omitempty"`
-		Login string `json:"login,omitempty"`
-		Email string `json:"email,omitempty"`
-		Name  string `json:"name,omitempty"`
+		ID       string `json:"id,omitempty"`
+		GithubID int    `json:"github_id,omitempty"`
+		Login    string `json:"login,omitempty"`
+		Email    string `json:"email,omitempty"`
+		Name     string `json:"name,omitempty"`
 	}
 	if err := vmap.Decode(&scanghu); err != nil {
 		return err
 	}
 	for _, v := range scanghu {
 		*ghu = append(*ghu, &GitHubUser{
-			ID:    v.ID,
-			Login: v.Login,
-			Email: v.Email,
-			Name:  v.Name,
+			ID:       v.ID,
+			GithubID: v.GithubID,
+			Login:    v.Login,
+			Email:    v.Email,
+			Name:     v.Name,
 		})
 	}
 	return nil
