@@ -30,7 +30,7 @@ const (
 	// PersonInverseLabel holds the string label denoting the person inverse edge type in the database.
 	PersonInverseLabel = "person_github_account"
 	// AssignedIssuesInverseLabel holds the string label denoting the assigned_issues inverse edge type in the database.
-	AssignedIssuesInverseLabel = "git_hub_issue_assignee"
+	AssignedIssuesInverseLabel = "git_hub_issue_assignees"
 )
 
 var (

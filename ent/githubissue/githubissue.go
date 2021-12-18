@@ -37,14 +37,14 @@ const (
 	FieldClosedAt = "closed_at"
 	// FieldAuthorAssociation holds the string denoting the author_association field in the database.
 	FieldAuthorAssociation = "author_association"
-	// EdgeAssignee holds the string denoting the assignee edge name in mutations.
-	EdgeAssignee = "assignee"
+	// EdgeAssignees holds the string denoting the assignees edge name in mutations.
+	EdgeAssignees = "assignees"
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"
 	// EdgeClosedBy holds the string denoting the closed_by edge name in mutations.
 	EdgeClosedBy = "closed_by"
-	// AssigneeLabel holds the string label denoting the assignee edge type in the database.
-	AssigneeLabel = "git_hub_issue_assignee"
+	// AssigneesLabel holds the string label denoting the assignees edge type in the database.
+	AssigneesLabel = "git_hub_issue_assignees"
 	// AuthorInverseLabel holds the string label denoting the author inverse edge type in the database.
 	AuthorInverseLabel = "git_hub_user_created_issues"
 	// ClosedByInverseLabel holds the string label denoting the closed_by inverse edge type in the database.

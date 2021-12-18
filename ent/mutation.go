@@ -283,9 +283,9 @@ type GitHubIssueMutation struct {
 	closed_at          *string
 	author_association *string
 	clearedFields      map[string]struct{}
-	assignee           map[string]struct{}
-	removedassignee    map[string]struct{}
-	clearedassignee    bool
+	assignees          map[string]struct{}
+	removedassignees   map[string]struct{}
+	clearedassignees   bool
 	author             *string
 	clearedauthor      bool
 	closed_by          *string
@@ -908,58 +908,58 @@ func (m *GitHubIssueMutation) ResetAuthorAssociation() {
 	m.author_association = nil
 }
 
-// AddAssigneeIDs adds the "assignee" edge to the GitHubUser entity by ids.
+// AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by ids.
 func (m *GitHubIssueMutation) AddAssigneeIDs(ids ...string) {
-	if m.assignee == nil {
-		m.assignee = make(map[string]struct{})
+	if m.assignees == nil {
+		m.assignees = make(map[string]struct{})
 	}
 	for i := range ids {
-		m.assignee[ids[i]] = struct{}{}
+		m.assignees[ids[i]] = struct{}{}
 	}
 }
 
-// ClearAssignee clears the "assignee" edge to the GitHubUser entity.
-func (m *GitHubIssueMutation) ClearAssignee() {
-	m.clearedassignee = true
+// ClearAssignees clears the "assignees" edge to the GitHubUser entity.
+func (m *GitHubIssueMutation) ClearAssignees() {
+	m.clearedassignees = true
 }
 
-// AssigneeCleared reports if the "assignee" edge to the GitHubUser entity was cleared.
-func (m *GitHubIssueMutation) AssigneeCleared() bool {
-	return m.clearedassignee
+// AssigneesCleared reports if the "assignees" edge to the GitHubUser entity was cleared.
+func (m *GitHubIssueMutation) AssigneesCleared() bool {
+	return m.clearedassignees
 }
 
-// RemoveAssigneeIDs removes the "assignee" edge to the GitHubUser entity by IDs.
+// RemoveAssigneeIDs removes the "assignees" edge to the GitHubUser entity by IDs.
 func (m *GitHubIssueMutation) RemoveAssigneeIDs(ids ...string) {
-	if m.removedassignee == nil {
-		m.removedassignee = make(map[string]struct{})
+	if m.removedassignees == nil {
+		m.removedassignees = make(map[string]struct{})
 	}
 	for i := range ids {
-		delete(m.assignee, ids[i])
-		m.removedassignee[ids[i]] = struct{}{}
+		delete(m.assignees, ids[i])
+		m.removedassignees[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedAssignee returns the removed IDs of the "assignee" edge to the GitHubUser entity.
-func (m *GitHubIssueMutation) RemovedAssigneeIDs() (ids []string) {
-	for id := range m.removedassignee {
+// RemovedAssignees returns the removed IDs of the "assignees" edge to the GitHubUser entity.
+func (m *GitHubIssueMutation) RemovedAssigneesIDs() (ids []string) {
+	for id := range m.removedassignees {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// AssigneeIDs returns the "assignee" edge IDs in the mutation.
-func (m *GitHubIssueMutation) AssigneeIDs() (ids []string) {
-	for id := range m.assignee {
+// AssigneesIDs returns the "assignees" edge IDs in the mutation.
+func (m *GitHubIssueMutation) AssigneesIDs() (ids []string) {
+	for id := range m.assignees {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetAssignee resets all changes to the "assignee" edge.
-func (m *GitHubIssueMutation) ResetAssignee() {
-	m.assignee = nil
-	m.clearedassignee = false
-	m.removedassignee = nil
+// ResetAssignees resets all changes to the "assignees" edge.
+func (m *GitHubIssueMutation) ResetAssignees() {
+	m.assignees = nil
+	m.clearedassignees = false
+	m.removedassignees = nil
 }
 
 // SetAuthorID sets the "author" edge to the GitHubUser entity by id.
@@ -1402,8 +1402,8 @@ func (m *GitHubIssueMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GitHubIssueMutation) AddedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.assignee != nil {
-		edges = append(edges, githubissue.EdgeAssignee)
+	if m.assignees != nil {
+		edges = append(edges, githubissue.EdgeAssignees)
 	}
 	if m.author != nil {
 		edges = append(edges, githubissue.EdgeAuthor)
@@ -1418,9 +1418,9 @@ func (m *GitHubIssueMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *GitHubIssueMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case githubissue.EdgeAssignee:
-		ids := make([]ent.Value, 0, len(m.assignee))
-		for id := range m.assignee {
+	case githubissue.EdgeAssignees:
+		ids := make([]ent.Value, 0, len(m.assignees))
+		for id := range m.assignees {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1439,8 +1439,8 @@ func (m *GitHubIssueMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GitHubIssueMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.removedassignee != nil {
-		edges = append(edges, githubissue.EdgeAssignee)
+	if m.removedassignees != nil {
+		edges = append(edges, githubissue.EdgeAssignees)
 	}
 	return edges
 }
@@ -1449,9 +1449,9 @@ func (m *GitHubIssueMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *GitHubIssueMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case githubissue.EdgeAssignee:
-		ids := make([]ent.Value, 0, len(m.removedassignee))
-		for id := range m.removedassignee {
+	case githubissue.EdgeAssignees:
+		ids := make([]ent.Value, 0, len(m.removedassignees))
+		for id := range m.removedassignees {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1462,8 +1462,8 @@ func (m *GitHubIssueMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GitHubIssueMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.clearedassignee {
-		edges = append(edges, githubissue.EdgeAssignee)
+	if m.clearedassignees {
+		edges = append(edges, githubissue.EdgeAssignees)
 	}
 	if m.clearedauthor {
 		edges = append(edges, githubissue.EdgeAuthor)
@@ -1478,8 +1478,8 @@ func (m *GitHubIssueMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *GitHubIssueMutation) EdgeCleared(name string) bool {
 	switch name {
-	case githubissue.EdgeAssignee:
-		return m.clearedassignee
+	case githubissue.EdgeAssignees:
+		return m.clearedassignees
 	case githubissue.EdgeAuthor:
 		return m.clearedauthor
 	case githubissue.EdgeClosedBy:
@@ -1506,8 +1506,8 @@ func (m *GitHubIssueMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *GitHubIssueMutation) ResetEdge(name string) error {
 	switch name {
-	case githubissue.EdgeAssignee:
-		m.ResetAssignee()
+	case githubissue.EdgeAssignees:
+		m.ResetAssignees()
 		return nil
 	case githubissue.EdgeAuthor:
 		m.ResetAuthor()

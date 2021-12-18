@@ -118,7 +118,7 @@ func (ghuq *GitHubUserQuery) QueryAssignedIssues() *GitHubIssueQuery {
 			return nil, err
 		}
 		gremlin := ghuq.gremlinQuery(ctx)
-		fromU = gremlin.InE(githubissue.AssigneeLabel).OutV()
+		fromU = gremlin.InE(githubissue.AssigneesLabel).OutV()
 		return fromU, nil
 	}
 	return query

@@ -49,8 +49,8 @@ type GitHubIssue struct {
 
 // GitHubIssueEdges holds the relations/edges for other nodes in the graph.
 type GitHubIssueEdges struct {
-	// Assignee holds the value of the assignee edge.
-	Assignee []*GitHubUser `json:"assignee,omitempty"`
+	// Assignees holds the value of the assignees edge.
+	Assignees []*GitHubUser `json:"assignees,omitempty"`
 	// Author holds the value of the author edge.
 	Author *GitHubUser `json:"author,omitempty"`
 	// ClosedBy holds the value of the closed_by edge.
@@ -60,13 +60,13 @@ type GitHubIssueEdges struct {
 	loadedTypes [3]bool
 }
 
-// AssigneeOrErr returns the Assignee value or an error if the edge
+// AssigneesOrErr returns the Assignees value or an error if the edge
 // was not loaded in eager-loading.
-func (e GitHubIssueEdges) AssigneeOrErr() ([]*GitHubUser, error) {
+func (e GitHubIssueEdges) AssigneesOrErr() ([]*GitHubUser, error) {
 	if e.loadedTypes[0] {
-		return e.Assignee, nil
+		return e.Assignees, nil
 	}
-	return nil, &NotLoadedError{edge: "assignee"}
+	return nil, &NotLoadedError{edge: "assignees"}
 }
 
 // AuthorOrErr returns the Author value or an error if the edge
@@ -139,9 +139,9 @@ func (ghi *GitHubIssue) FromResponse(res *gremlin.Response) error {
 	return nil
 }
 
-// QueryAssignee queries the "assignee" edge of the GitHubIssue entity.
-func (ghi *GitHubIssue) QueryAssignee() *GitHubUserQuery {
-	return (&GitHubIssueClient{config: ghi.config}).QueryAssignee(ghi)
+// QueryAssignees queries the "assignees" edge of the GitHubIssue entity.
+func (ghi *GitHubIssue) QueryAssignees() *GitHubUserQuery {
+	return (&GitHubIssueClient{config: ghi.config}).QueryAssignees(ghi)
 }
 
 // QueryAuthor queries the "author" edge of the GitHubIssue entity.

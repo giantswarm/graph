@@ -363,11 +363,11 @@ func (ghuu *GitHubUserUpdate) gremlin() *dsl.Traversal {
 		})
 	}
 	for _, id := range ghuu.mutation.RemovedAssignedIssuesIDs() {
-		tr := rv.Clone().InE(githubissue.AssigneeLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		tr := rv.Clone().InE(githubissue.AssigneesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
 		trs = append(trs, tr)
 	}
 	for _, id := range ghuu.mutation.AssignedIssuesIDs() {
-		v.AddE(githubissue.AssigneeLabel).From(g.V(id)).InV()
+		v.AddE(githubissue.AssigneesLabel).From(g.V(id)).InV()
 	}
 	v.Count()
 	if len(constraints) > 0 {
@@ -737,11 +737,11 @@ func (ghuuo *GitHubUserUpdateOne) gremlin(id string) *dsl.Traversal {
 		})
 	}
 	for _, id := range ghuuo.mutation.RemovedAssignedIssuesIDs() {
-		tr := rv.Clone().InE(githubissue.AssigneeLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+		tr := rv.Clone().InE(githubissue.AssigneesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
 		trs = append(trs, tr)
 	}
 	for _, id := range ghuuo.mutation.AssignedIssuesIDs() {
-		v.AddE(githubissue.AssigneeLabel).From(g.V(id)).InV()
+		v.AddE(githubissue.AssigneesLabel).From(g.V(id)).InV()
 	}
 	if len(ghuuo.fields) > 0 {
 		fields := make([]interface{}, 0, len(ghuuo.fields)+1)

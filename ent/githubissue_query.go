@@ -27,9 +27,9 @@ type GitHubIssueQuery struct {
 	fields     []string
 	predicates []predicate.GitHubIssue
 	// eager-loading edges.
-	withAssignee *GitHubUserQuery
-	withAuthor   *GitHubUserQuery
-	withClosedBy *GitHubUserQuery
+	withAssignees *GitHubUserQuery
+	withAuthor    *GitHubUserQuery
+	withClosedBy  *GitHubUserQuery
 	// intermediate query (i.e. traversal path).
 	gremlin *dsl.Traversal
 	path    func(context.Context) (*dsl.Traversal, error)
@@ -66,15 +66,15 @@ func (ghiq *GitHubIssueQuery) Order(o ...OrderFunc) *GitHubIssueQuery {
 	return ghiq
 }
 
-// QueryAssignee chains the current query on the "assignee" edge.
-func (ghiq *GitHubIssueQuery) QueryAssignee() *GitHubUserQuery {
+// QueryAssignees chains the current query on the "assignees" edge.
+func (ghiq *GitHubIssueQuery) QueryAssignees() *GitHubUserQuery {
 	query := &GitHubUserQuery{config: ghiq.config}
 	query.path = func(ctx context.Context) (fromU *dsl.Traversal, err error) {
 		if err := ghiq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		gremlin := ghiq.gremlinQuery(ctx)
-		fromU = gremlin.OutE(githubissue.AssigneeLabel).InV()
+		fromU = gremlin.OutE(githubissue.AssigneesLabel).InV()
 		return fromU, nil
 	}
 	return query
@@ -284,28 +284,28 @@ func (ghiq *GitHubIssueQuery) Clone() *GitHubIssueQuery {
 		return nil
 	}
 	return &GitHubIssueQuery{
-		config:       ghiq.config,
-		limit:        ghiq.limit,
-		offset:       ghiq.offset,
-		order:        append([]OrderFunc{}, ghiq.order...),
-		predicates:   append([]predicate.GitHubIssue{}, ghiq.predicates...),
-		withAssignee: ghiq.withAssignee.Clone(),
-		withAuthor:   ghiq.withAuthor.Clone(),
-		withClosedBy: ghiq.withClosedBy.Clone(),
+		config:        ghiq.config,
+		limit:         ghiq.limit,
+		offset:        ghiq.offset,
+		order:         append([]OrderFunc{}, ghiq.order...),
+		predicates:    append([]predicate.GitHubIssue{}, ghiq.predicates...),
+		withAssignees: ghiq.withAssignees.Clone(),
+		withAuthor:    ghiq.withAuthor.Clone(),
+		withClosedBy:  ghiq.withClosedBy.Clone(),
 		// clone intermediate query.
 		gremlin: ghiq.gremlin.Clone(),
 		path:    ghiq.path,
 	}
 }
 
-// WithAssignee tells the query-builder to eager-load the nodes that are connected to
-// the "assignee" edge. The optional arguments are used to configure the query builder of the edge.
-func (ghiq *GitHubIssueQuery) WithAssignee(opts ...func(*GitHubUserQuery)) *GitHubIssueQuery {
+// WithAssignees tells the query-builder to eager-load the nodes that are connected to
+// the "assignees" edge. The optional arguments are used to configure the query builder of the edge.
+func (ghiq *GitHubIssueQuery) WithAssignees(opts ...func(*GitHubUserQuery)) *GitHubIssueQuery {
 	query := &GitHubUserQuery{config: ghiq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	ghiq.withAssignee = query
+	ghiq.withAssignees = query
 	return ghiq
 }
 

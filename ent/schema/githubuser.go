@@ -42,6 +42,6 @@ func (GitHubUser) Edges() []ent.Edge {
 
 		// issues this GitHub user is assigned to
 		edge.From("assigned_issues", GitHubIssue.Type).
-			Ref("assignee"),
+			Ref("assignees"),
 	}
 }

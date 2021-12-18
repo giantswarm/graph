@@ -137,14 +137,14 @@ func (ghiu *GitHubIssueUpdate) SetAuthorAssociation(s string) *GitHubIssueUpdate
 	return ghiu
 }
 
-// AddAssigneeIDs adds the "assignee" edge to the GitHubUser entity by IDs.
+// AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by IDs.
 func (ghiu *GitHubIssueUpdate) AddAssigneeIDs(ids ...string) *GitHubIssueUpdate {
 	ghiu.mutation.AddAssigneeIDs(ids...)
 	return ghiu
 }
 
-// AddAssignee adds the "assignee" edges to the GitHubUser entity.
-func (ghiu *GitHubIssueUpdate) AddAssignee(g ...*GitHubUser) *GitHubIssueUpdate {
+// AddAssignees adds the "assignees" edges to the GitHubUser entity.
+func (ghiu *GitHubIssueUpdate) AddAssignees(g ...*GitHubUser) *GitHubIssueUpdate {
 	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -187,20 +187,20 @@ func (ghiu *GitHubIssueUpdate) Mutation() *GitHubIssueMutation {
 	return ghiu.mutation
 }
 
-// ClearAssignee clears all "assignee" edges to the GitHubUser entity.
-func (ghiu *GitHubIssueUpdate) ClearAssignee() *GitHubIssueUpdate {
-	ghiu.mutation.ClearAssignee()
+// ClearAssignees clears all "assignees" edges to the GitHubUser entity.
+func (ghiu *GitHubIssueUpdate) ClearAssignees() *GitHubIssueUpdate {
+	ghiu.mutation.ClearAssignees()
 	return ghiu
 }
 
-// RemoveAssigneeIDs removes the "assignee" edge to GitHubUser entities by IDs.
+// RemoveAssigneeIDs removes the "assignees" edge to GitHubUser entities by IDs.
 func (ghiu *GitHubIssueUpdate) RemoveAssigneeIDs(ids ...string) *GitHubIssueUpdate {
 	ghiu.mutation.RemoveAssigneeIDs(ids...)
 	return ghiu
 }
 
-// RemoveAssignee removes "assignee" edges to GitHubUser entities.
-func (ghiu *GitHubIssueUpdate) RemoveAssignee(g ...*GitHubUser) *GitHubIssueUpdate {
+// RemoveAssignees removes "assignees" edges to GitHubUser entities.
+func (ghiu *GitHubIssueUpdate) RemoveAssignees(g ...*GitHubUser) *GitHubIssueUpdate {
 	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -417,12 +417,12 @@ func (ghiu *GitHubIssueUpdate) gremlin() *dsl.Traversal {
 	if value, ok := ghiu.mutation.AuthorAssociation(); ok {
 		v.Property(dsl.Single, githubissue.FieldAuthorAssociation, value)
 	}
-	for _, id := range ghiu.mutation.RemovedAssigneeIDs() {
-		tr := rv.Clone().OutE(githubissue.AssigneeLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+	for _, id := range ghiu.mutation.RemovedAssigneesIDs() {
+		tr := rv.Clone().OutE(githubissue.AssigneesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
 		trs = append(trs, tr)
 	}
-	for _, id := range ghiu.mutation.AssigneeIDs() {
-		v.AddE(githubissue.AssigneeLabel).To(g.V(id)).OutV()
+	for _, id := range ghiu.mutation.AssigneesIDs() {
+		v.AddE(githubissue.AssigneesLabel).To(g.V(id)).OutV()
 	}
 	if ghiu.mutation.AuthorCleared() {
 		tr := rv.Clone().InE(githubuser.CreatedIssuesLabel).Drop().Iterate()
@@ -568,14 +568,14 @@ func (ghiuo *GitHubIssueUpdateOne) SetAuthorAssociation(s string) *GitHubIssueUp
 	return ghiuo
 }
 
-// AddAssigneeIDs adds the "assignee" edge to the GitHubUser entity by IDs.
+// AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by IDs.
 func (ghiuo *GitHubIssueUpdateOne) AddAssigneeIDs(ids ...string) *GitHubIssueUpdateOne {
 	ghiuo.mutation.AddAssigneeIDs(ids...)
 	return ghiuo
 }
 
-// AddAssignee adds the "assignee" edges to the GitHubUser entity.
-func (ghiuo *GitHubIssueUpdateOne) AddAssignee(g ...*GitHubUser) *GitHubIssueUpdateOne {
+// AddAssignees adds the "assignees" edges to the GitHubUser entity.
+func (ghiuo *GitHubIssueUpdateOne) AddAssignees(g ...*GitHubUser) *GitHubIssueUpdateOne {
 	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -618,20 +618,20 @@ func (ghiuo *GitHubIssueUpdateOne) Mutation() *GitHubIssueMutation {
 	return ghiuo.mutation
 }
 
-// ClearAssignee clears all "assignee" edges to the GitHubUser entity.
-func (ghiuo *GitHubIssueUpdateOne) ClearAssignee() *GitHubIssueUpdateOne {
-	ghiuo.mutation.ClearAssignee()
+// ClearAssignees clears all "assignees" edges to the GitHubUser entity.
+func (ghiuo *GitHubIssueUpdateOne) ClearAssignees() *GitHubIssueUpdateOne {
+	ghiuo.mutation.ClearAssignees()
 	return ghiuo
 }
 
-// RemoveAssigneeIDs removes the "assignee" edge to GitHubUser entities by IDs.
+// RemoveAssigneeIDs removes the "assignees" edge to GitHubUser entities by IDs.
 func (ghiuo *GitHubIssueUpdateOne) RemoveAssigneeIDs(ids ...string) *GitHubIssueUpdateOne {
 	ghiuo.mutation.RemoveAssigneeIDs(ids...)
 	return ghiuo
 }
 
-// RemoveAssignee removes "assignee" edges to GitHubUser entities.
-func (ghiuo *GitHubIssueUpdateOne) RemoveAssignee(g ...*GitHubUser) *GitHubIssueUpdateOne {
+// RemoveAssignees removes "assignees" edges to GitHubUser entities.
+func (ghiuo *GitHubIssueUpdateOne) RemoveAssignees(g ...*GitHubUser) *GitHubIssueUpdateOne {
 	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -860,12 +860,12 @@ func (ghiuo *GitHubIssueUpdateOne) gremlin(id string) *dsl.Traversal {
 	if value, ok := ghiuo.mutation.AuthorAssociation(); ok {
 		v.Property(dsl.Single, githubissue.FieldAuthorAssociation, value)
 	}
-	for _, id := range ghiuo.mutation.RemovedAssigneeIDs() {
-		tr := rv.Clone().OutE(githubissue.AssigneeLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
+	for _, id := range ghiuo.mutation.RemovedAssigneesIDs() {
+		tr := rv.Clone().OutE(githubissue.AssigneesLabel).Where(__.OtherV().HasID(id)).Drop().Iterate()
 		trs = append(trs, tr)
 	}
-	for _, id := range ghiuo.mutation.AssigneeIDs() {
-		v.AddE(githubissue.AssigneeLabel).To(g.V(id)).OutV()
+	for _, id := range ghiuo.mutation.AssigneesIDs() {
+		v.AddE(githubissue.AssigneesLabel).To(g.V(id)).OutV()
 	}
 	if ghiuo.mutation.AuthorCleared() {
 		tr := rv.Clone().InE(githubuser.CreatedIssuesLabel).Drop().Iterate()

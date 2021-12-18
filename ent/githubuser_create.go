@@ -285,7 +285,7 @@ func (ghuc *GitHubUserCreate) gremlin() *dsl.Traversal {
 		})
 	}
 	for _, id := range ghuc.mutation.AssignedIssuesIDs() {
-		v.AddE(githubissue.AssigneeLabel).From(g.V(id)).InV()
+		v.AddE(githubissue.AssigneesLabel).From(g.V(id)).InV()
 	}
 	if len(constraints) == 0 {
 		return v.ValueMap(true)

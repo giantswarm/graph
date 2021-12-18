@@ -115,14 +115,14 @@ func (ghic *GitHubIssueCreate) SetID(s string) *GitHubIssueCreate {
 	return ghic
 }
 
-// AddAssigneeIDs adds the "assignee" edge to the GitHubUser entity by IDs.
+// AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by IDs.
 func (ghic *GitHubIssueCreate) AddAssigneeIDs(ids ...string) *GitHubIssueCreate {
 	ghic.mutation.AddAssigneeIDs(ids...)
 	return ghic
 }
 
-// AddAssignee adds the "assignee" edges to the GitHubUser entity.
-func (ghic *GitHubIssueCreate) AddAssignee(g ...*GitHubUser) *GitHubIssueCreate {
+// AddAssignees adds the "assignees" edges to the GitHubUser entity.
+func (ghic *GitHubIssueCreate) AddAssignees(g ...*GitHubUser) *GitHubIssueCreate {
 	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -402,8 +402,8 @@ func (ghic *GitHubIssueCreate) gremlin() *dsl.Traversal {
 	if value, ok := ghic.mutation.AuthorAssociation(); ok {
 		v.Property(dsl.Single, githubissue.FieldAuthorAssociation, value)
 	}
-	for _, id := range ghic.mutation.AssigneeIDs() {
-		v.AddE(githubissue.AssigneeLabel).To(g.V(id)).OutV()
+	for _, id := range ghic.mutation.AssigneesIDs() {
+		v.AddE(githubissue.AssigneesLabel).To(g.V(id)).OutV()
 	}
 	for _, id := range ghic.mutation.AuthorIDs() {
 		v.AddE(githubuser.CreatedIssuesLabel).From(g.V(id)).InV()

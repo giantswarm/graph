@@ -1086,21 +1086,21 @@ func AuthorAssociationHasSuffix(v string) predicate.GitHubIssue {
 	})
 }
 
-// HasAssignee applies the HasEdge predicate on the "assignee" edge.
-func HasAssignee() predicate.GitHubIssue {
+// HasAssignees applies the HasEdge predicate on the "assignees" edge.
+func HasAssignees() predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
-		t.OutE(AssigneeLabel).OutV()
+		t.OutE(AssigneesLabel).OutV()
 	})
 }
 
-// HasAssigneeWith applies the HasEdge predicate on the "assignee" edge with a given conditions (other predicates).
-func HasAssigneeWith(preds ...predicate.GitHubUser) predicate.GitHubIssue {
+// HasAssigneesWith applies the HasEdge predicate on the "assignees" edge with a given conditions (other predicates).
+func HasAssigneesWith(preds ...predicate.GitHubUser) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		tr := __.InV()
 		for _, p := range preds {
 			p(tr)
 		}
-		t.OutE(AssigneeLabel).Where(tr).OutV()
+		t.OutE(AssigneesLabel).Where(tr).OutV()
 	})
 }
 

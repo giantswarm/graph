@@ -302,12 +302,12 @@ func (c *GitHubIssueClient) GetX(ctx context.Context, id string) *GitHubIssue {
 	return obj
 }
 
-// QueryAssignee queries the assignee edge of a GitHubIssue.
-func (c *GitHubIssueClient) QueryAssignee(ghi *GitHubIssue) *GitHubUserQuery {
+// QueryAssignees queries the assignees edge of a GitHubIssue.
+func (c *GitHubIssueClient) QueryAssignees(ghi *GitHubIssue) *GitHubUserQuery {
 	query := &GitHubUserQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
 
-		fromV = g.V(ghi.ID).OutE(githubissue.AssigneeLabel).InV()
+		fromV = g.V(ghi.ID).OutE(githubissue.AssigneesLabel).InV()
 		return fromV, nil
 	}
 	return query
@@ -463,7 +463,7 @@ func (c *GitHubUserClient) QueryAssignedIssues(ghu *GitHubUser) *GitHubIssueQuer
 	query := &GitHubIssueQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *dsl.Traversal, _ error) {
 
-		fromV = g.V(ghu.ID).InE(githubissue.AssigneeLabel).OutV()
+		fromV = g.V(ghu.ID).InE(githubissue.AssigneesLabel).OutV()
 		return fromV, nil
 	}
 	return query

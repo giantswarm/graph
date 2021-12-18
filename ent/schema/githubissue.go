@@ -45,7 +45,7 @@ func (GitHubIssue) Fields() []ent.Field {
 func (GitHubIssue) Edges() []ent.Edge {
 	return []ent.Edge{
 		// out edges
-		edge.To("assignee", GitHubUser.Type),
+		edge.To("assignees", GitHubUser.Type),
 
 		// in (inverse) edges
 		edge.From("author", GitHubUser.Type).Ref("created_issues").Unique().Required(),
