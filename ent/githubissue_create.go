@@ -109,21 +109,15 @@ func (ghic *GitHubIssueCreate) SetAuthorAssociation(s string) *GitHubIssueCreate
 	return ghic
 }
 
-// SetID sets the "id" field.
-func (ghic *GitHubIssueCreate) SetID(s string) *GitHubIssueCreate {
-	ghic.mutation.SetID(s)
-	return ghic
-}
-
 // AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by IDs.
-func (ghic *GitHubIssueCreate) AddAssigneeIDs(ids ...string) *GitHubIssueCreate {
+func (ghic *GitHubIssueCreate) AddAssigneeIDs(ids ...int) *GitHubIssueCreate {
 	ghic.mutation.AddAssigneeIDs(ids...)
 	return ghic
 }
 
 // AddAssignees adds the "assignees" edges to the GitHubUser entity.
 func (ghic *GitHubIssueCreate) AddAssignees(g ...*GitHubUser) *GitHubIssueCreate {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -131,7 +125,7 @@ func (ghic *GitHubIssueCreate) AddAssignees(g ...*GitHubUser) *GitHubIssueCreate
 }
 
 // SetAuthorID sets the "author" edge to the GitHubUser entity by ID.
-func (ghic *GitHubIssueCreate) SetAuthorID(id string) *GitHubIssueCreate {
+func (ghic *GitHubIssueCreate) SetAuthorID(id int) *GitHubIssueCreate {
 	ghic.mutation.SetAuthorID(id)
 	return ghic
 }
@@ -142,13 +136,13 @@ func (ghic *GitHubIssueCreate) SetAuthor(g *GitHubUser) *GitHubIssueCreate {
 }
 
 // SetClosedByID sets the "closed_by" edge to the GitHubUser entity by ID.
-func (ghic *GitHubIssueCreate) SetClosedByID(id string) *GitHubIssueCreate {
+func (ghic *GitHubIssueCreate) SetClosedByID(id int) *GitHubIssueCreate {
 	ghic.mutation.SetClosedByID(id)
 	return ghic
 }
 
 // SetNillableClosedByID sets the "closed_by" edge to the GitHubUser entity by ID if the given value is not nil.
-func (ghic *GitHubIssueCreate) SetNillableClosedByID(id *string) *GitHubIssueCreate {
+func (ghic *GitHubIssueCreate) SetNillableClosedByID(id *int) *GitHubIssueCreate {
 	if id != nil {
 		ghic = ghic.SetClosedByID(*id)
 	}
@@ -318,11 +312,6 @@ func (ghic *GitHubIssueCreate) check() error {
 	if _, ok := ghic.mutation.AuthorAssociation(); !ok {
 		return &ValidationError{Name: "author_association", err: errors.New(`ent: missing required field "author_association"`)}
 	}
-	if v, ok := ghic.mutation.ID(); ok {
-		if err := githubissue.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "id": %w`, err)}
-		}
-	}
 	if _, ok := ghic.mutation.AuthorID(); !ok {
 		return &ValidationError{Name: "author", err: errors.New("ent: missing required edge \"author\"")}
 	}
@@ -347,76 +336,135 @@ func (ghic *GitHubIssueCreate) gremlinSave(ctx context.Context) (*GitHubIssue, e
 
 func (ghic *GitHubIssueCreate) gremlin() *dsl.Traversal {
 	type constraint struct {
-		pred *dsl.Traversal // constraint predicate.
-		test *dsl.Traversal // test matches and its constant.
+		firstQueryPred *dsl.Traversal // constraint predicate.
+		pred           *dsl.Traversal // constraint predicate.
+		test           *dsl.Traversal // test matches and its constant.
 	}
 	constraints := make([]*constraint, 0, 2)
-	v := g.AddV(githubissue.Label)
-	if id, ok := ghic.mutation.ID(); ok {
-		v.Property(dsl.ID, id)
+	createTraversal := func(constraints []*constraint, traversalFuncs []func(*dsl.Traversal)) *dsl.Traversal {
+		var v *dsl.Traversal
+		if len(constraints) > 0 {
+			// We will use coalesce, therefore AddV will be child traversal, so we need __ here
+			v = __.New().AddV(githubissue.Label)
+		} else {
+			v = g.AddV(githubissue.Label)
+		}
+		for _, tf := range traversalFuncs {
+			tf(v)
+		}
+		return v
 	}
+	traversalFuncs := []func(*dsl.Traversal){}
 	if value, ok := ghic.mutation.GithubID(); ok {
 		constraints = append(constraints, &constraint{
-			pred: g.V().Has(githubissue.Label, githubissue.FieldGithubID, value).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubissue.Label, githubissue.FieldGithubID, value)),
+			firstQueryPred: g.V().Has(githubissue.Label, githubissue.FieldGithubID, value).Count(),
+			pred:           __.V().Has(githubissue.Label, githubissue.FieldGithubID, value).Count(),
+			test:           __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubissue.Label, githubissue.FieldGithubID, value)),
 		})
-		v.Property(dsl.Single, githubissue.FieldGithubID, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldGithubID, value)
+		})
 	}
 	if value, ok := ghic.mutation.Number(); ok {
-		v.Property(dsl.Single, githubissue.FieldNumber, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldNumber, value)
+		})
 	}
 	if value, ok := ghic.mutation.Title(); ok {
-		v.Property(dsl.Single, githubissue.FieldTitle, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldTitle, value)
+		})
 	}
 	if value, ok := ghic.mutation.Body(); ok {
-		v.Property(dsl.Single, githubissue.FieldBody, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldBody, value)
+		})
 	}
 	if value, ok := ghic.mutation.HTMLURL(); ok {
 		constraints = append(constraints, &constraint{
-			pred: g.V().Has(githubissue.Label, githubissue.FieldHTMLURL, value).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubissue.Label, githubissue.FieldHTMLURL, value)),
+			firstQueryPred: g.V().Has(githubissue.Label, githubissue.FieldHTMLURL, value).Count(),
+			pred:           __.V().Has(githubissue.Label, githubissue.FieldHTMLURL, value).Count(),
+			test:           __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubissue.Label, githubissue.FieldHTMLURL, value)),
 		})
-		v.Property(dsl.Single, githubissue.FieldHTMLURL, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldHTMLURL, value)
+		})
 	}
 	if value, ok := ghic.mutation.State(); ok {
-		v.Property(dsl.Single, githubissue.FieldState, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldState, value)
+		})
 	}
 	if value, ok := ghic.mutation.Locked(); ok {
-		v.Property(dsl.Single, githubissue.FieldLocked, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldLocked, value)
+		})
 	}
 	if value, ok := ghic.mutation.ActiveLockReason(); ok {
-		v.Property(dsl.Single, githubissue.FieldActiveLockReason, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldActiveLockReason, value)
+		})
 	}
 	if value, ok := ghic.mutation.CommentsCount(); ok {
-		v.Property(dsl.Single, githubissue.FieldCommentsCount, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldCommentsCount, value)
+		})
 	}
 	if value, ok := ghic.mutation.CreatedAt(); ok {
-		v.Property(dsl.Single, githubissue.FieldCreatedAt, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldCreatedAt, value)
+		})
 	}
 	if value, ok := ghic.mutation.UpdatedAt(); ok {
-		v.Property(dsl.Single, githubissue.FieldUpdatedAt, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldUpdatedAt, value)
+		})
 	}
 	if value, ok := ghic.mutation.ClosedAt(); ok {
-		v.Property(dsl.Single, githubissue.FieldClosedAt, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldClosedAt, value)
+		})
 	}
 	if value, ok := ghic.mutation.AuthorAssociation(); ok {
-		v.Property(dsl.Single, githubissue.FieldAuthorAssociation, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubissue.FieldAuthorAssociation, value)
+		})
 	}
 	for _, id := range ghic.mutation.AssigneesIDs() {
-		v.AddE(githubissue.AssigneesLabel).To(g.V(id)).OutV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(githubissue.AssigneesLabel).To(g.V(id)).OutV()
+		})
 	}
 	for _, id := range ghic.mutation.AuthorIDs() {
-		v.AddE(githubuser.CreatedIssuesLabel).From(g.V(id)).InV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(githubuser.CreatedIssuesLabel).From(g.V(id)).InV()
+		})
 	}
 	for _, id := range ghic.mutation.ClosedByIDs() {
-		v.AddE(githubuser.ClosedIssuesLabel).From(g.V(id)).InV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(githubuser.ClosedIssuesLabel).From(g.V(id)).InV()
+		})
 	}
+	v := createTraversal(constraints, traversalFuncs)
 	if len(constraints) == 0 {
 		return v.ValueMap(true)
 	}
-	tr := constraints[0].pred.Coalesce(constraints[0].test, v.ValueMap(true))
-	for _, cr := range constraints[1:] {
-		tr = cr.pred.Coalesce(cr.test, tr)
+	var tr *dsl.Traversal
+	if len(constraints) == 1 {
+		// use the TraversalSource (g) to start the traversal
+		tr = constraints[0].firstQueryPred.Coalesce(constraints[0].test, v.ValueMap(true))
+	} else {
+		// use the __ class rather than a TraversalSource to construct the child traversal anonymously
+		tr = constraints[0].pred.Coalesce(constraints[0].test, v.ValueMap(true))
+	}
+	for i, cr := range constraints[1:] {
+		if i == len(constraints[1:])-1 && cr.firstQueryPred != nil {
+			// use the TraversalSource (g) to start the traversal
+			tr = cr.firstQueryPred.Coalesce(cr.test, tr)
+		} else {
+			// use the __ class rather than a TraversalSource to construct the child traversal anonymously
+			tr = cr.pred.Coalesce(cr.test, tr)
+		}
 	}
 	return tr
 }

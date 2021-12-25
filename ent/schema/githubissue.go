@@ -14,8 +14,6 @@ type GitHubIssue struct {
 // Fields of the GitHubIssue.
 func (GitHubIssue) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").NotEmpty().Unique(),
-
 		field.Int("github_id").Positive().Unique(),
 		field.Int("number").Positive(),
 		field.String("title").NotEmpty(),

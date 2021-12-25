@@ -47,13 +47,13 @@ func (pu *PersonUpdate) SetIsGiantSwarmEmployee(b bool) *PersonUpdate {
 }
 
 // SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID.
-func (pu *PersonUpdate) SetGithubAccountID(id string) *PersonUpdate {
+func (pu *PersonUpdate) SetGithubAccountID(id int) *PersonUpdate {
 	pu.mutation.SetGithubAccountID(id)
 	return pu
 }
 
 // SetNillableGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID if the given value is not nil.
-func (pu *PersonUpdate) SetNillableGithubAccountID(id *string) *PersonUpdate {
+func (pu *PersonUpdate) SetNillableGithubAccountID(id *int) *PersonUpdate {
 	if id != nil {
 		pu = pu.SetGithubAccountID(*id)
 	}
@@ -179,7 +179,7 @@ func (pu *PersonUpdate) gremlin() *dsl.Traversal {
 		v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
 		constraints = append(constraints, &constraint{
 			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, id)),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, string(id))),
 		})
 	}
 	v.Count()
@@ -224,13 +224,13 @@ func (puo *PersonUpdateOne) SetIsGiantSwarmEmployee(b bool) *PersonUpdateOne {
 }
 
 // SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID.
-func (puo *PersonUpdateOne) SetGithubAccountID(id string) *PersonUpdateOne {
+func (puo *PersonUpdateOne) SetGithubAccountID(id int) *PersonUpdateOne {
 	puo.mutation.SetGithubAccountID(id)
 	return puo
 }
 
 // SetNillableGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID if the given value is not nil.
-func (puo *PersonUpdateOne) SetNillableGithubAccountID(id *string) *PersonUpdateOne {
+func (puo *PersonUpdateOne) SetNillableGithubAccountID(id *int) *PersonUpdateOne {
 	if id != nil {
 		puo = puo.SetGithubAccountID(*id)
 	}
@@ -334,7 +334,7 @@ func (puo *PersonUpdateOne) gremlinSave(ctx context.Context) (*Person, error) {
 	return pe, nil
 }
 
-func (puo *PersonUpdateOne) gremlin(id string) *dsl.Traversal {
+func (puo *PersonUpdateOne) gremlin(id int) *dsl.Traversal {
 	type constraint struct {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.
@@ -368,7 +368,7 @@ func (puo *PersonUpdateOne) gremlin(id string) *dsl.Traversal {
 		v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
 		constraints = append(constraints, &constraint{
 			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, id)),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, string(id))),
 		})
 	}
 	if len(puo.fields) > 0 {

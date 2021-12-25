@@ -36,6 +36,4 @@ const (
 var (
 	// GithubIDValidator is a validator for the "github_id" field. It is called by the builders before save.
 	GithubIDValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(string) error
 )

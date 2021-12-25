@@ -132,8 +132,8 @@ func (ghiq *GitHubIssueQuery) FirstX(ctx context.Context) *GitHubIssue {
 
 // FirstID returns the first GitHubIssue ID from the query.
 // Returns a *NotFoundError when no GitHubIssue ID was found.
-func (ghiq *GitHubIssueQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ghiq *GitHubIssueQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ghiq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -145,7 +145,7 @@ func (ghiq *GitHubIssueQuery) FirstID(ctx context.Context) (id string, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (ghiq *GitHubIssueQuery) FirstIDX(ctx context.Context) string {
+func (ghiq *GitHubIssueQuery) FirstIDX(ctx context.Context) int {
 	id, err := ghiq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -183,8 +183,8 @@ func (ghiq *GitHubIssueQuery) OnlyX(ctx context.Context) *GitHubIssue {
 // OnlyID is like Only, but returns the only GitHubIssue ID in the query.
 // Returns a *NotSingularError when exactly one GitHubIssue ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (ghiq *GitHubIssueQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ghiq *GitHubIssueQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ghiq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -200,7 +200,7 @@ func (ghiq *GitHubIssueQuery) OnlyID(ctx context.Context) (id string, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (ghiq *GitHubIssueQuery) OnlyIDX(ctx context.Context) string {
+func (ghiq *GitHubIssueQuery) OnlyIDX(ctx context.Context) int {
 	id, err := ghiq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -226,8 +226,8 @@ func (ghiq *GitHubIssueQuery) AllX(ctx context.Context) []*GitHubIssue {
 }
 
 // IDs executes the query and returns a list of GitHubIssue IDs.
-func (ghiq *GitHubIssueQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ghiq *GitHubIssueQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ghiq.Select(githubissue.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func (ghiq *GitHubIssueQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ghiq *GitHubIssueQuery) IDsX(ctx context.Context) []string {
+func (ghiq *GitHubIssueQuery) IDsX(ctx context.Context) []int {
 	ids, err := ghiq.IDs(ctx)
 	if err != nil {
 		panic(err)

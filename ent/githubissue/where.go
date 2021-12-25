@@ -10,28 +10,28 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id string) predicate.GitHubIssue {
+func ID(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(id)
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.GitHubIssue {
+func IDEQ(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.EQ(id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.GitHubIssue {
+func IDNEQ(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.NEQ(id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.GitHubIssue {
+func IDIn(ids ...int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -42,7 +42,7 @@ func IDIn(ids ...string) predicate.GitHubIssue {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.GitHubIssue {
+func IDNotIn(ids ...int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -53,28 +53,28 @@ func IDNotIn(ids ...string) predicate.GitHubIssue {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.GitHubIssue {
+func IDGT(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.GT(id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.GitHubIssue {
+func IDGTE(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.GTE(id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.GitHubIssue {
+func IDLT(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.LT(id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.GitHubIssue {
+func IDLTE(id int) predicate.GitHubIssue {
 	return predicate.GitHubIssue(func(t *dsl.Traversal) {
 		t.HasID(p.LTE(id))
 	})

@@ -14,8 +14,6 @@ type GitHubUser struct {
 // Fields of the GitHubUser.
 func (GitHubUser) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").NotEmpty().Unique(),
-
 		field.Int("github_id").Positive().Unique(),
 		field.String("login").Unique(),
 		field.String("email").Unique(),

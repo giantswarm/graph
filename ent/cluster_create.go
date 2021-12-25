@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/gremlin"
 	"entgo.io/ent/dialect/gremlin/graph/dsl"
+	"entgo.io/ent/dialect/gremlin/graph/dsl/__"
 	"entgo.io/ent/dialect/gremlin/graph/dsl/g"
 	"github.com/giantswarm/graph/ent/cluster"
 )
@@ -109,7 +110,27 @@ func (cc *ClusterCreate) gremlinSave(ctx context.Context) (*Cluster, error) {
 }
 
 func (cc *ClusterCreate) gremlin() *dsl.Traversal {
-	v := g.AddV(cluster.Label)
+	type constraint struct {
+		firstQueryPred *dsl.Traversal // constraint predicate.
+		pred           *dsl.Traversal // constraint predicate.
+		test           *dsl.Traversal // test matches and its constant.
+	}
+	constraints := make([]*constraint, 0, 0)
+	createTraversal := func(constraints []*constraint, traversalFuncs []func(*dsl.Traversal)) *dsl.Traversal {
+		var v *dsl.Traversal
+		if len(constraints) > 0 {
+			// We will use coalesce, therefore AddV will be child traversal, so we need __ here
+			v = __.New().AddV(cluster.Label)
+		} else {
+			v = g.AddV(cluster.Label)
+		}
+		for _, tf := range traversalFuncs {
+			tf(v)
+		}
+		return v
+	}
+	traversalFuncs := []func(*dsl.Traversal){}
+	v := createTraversal(constraints, traversalFuncs)
 	return v.ValueMap(true)
 }
 

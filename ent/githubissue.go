@@ -15,7 +15,7 @@ import (
 type GitHubIssue struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// GithubID holds the value of the "github_id" field.
 	GithubID int `json:"github_id,omitempty"`
 	// Number holds the value of the "number" field.
@@ -104,7 +104,7 @@ func (ghi *GitHubIssue) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghi struct {
-		ID                string            `json:"id,omitempty"`
+		ID                int               `json:"id,omitempty"`
 		GithubID          int               `json:"github_id,omitempty"`
 		Number            int               `json:"number,omitempty"`
 		Title             string            `json:"title,omitempty"`
@@ -217,7 +217,7 @@ func (ghi *GitHubIssues) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghi []struct {
-		ID                string            `json:"id,omitempty"`
+		ID                int               `json:"id,omitempty"`
 		GithubID          int               `json:"github_id,omitempty"`
 		Number            int               `json:"number,omitempty"`
 		Title             string            `json:"title,omitempty"`

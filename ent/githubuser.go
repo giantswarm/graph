@@ -14,7 +14,7 @@ import (
 type GitHubUser struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// GithubID holds the value of the "github_id" field.
 	GithubID int `json:"github_id,omitempty"`
 	// Login holds the value of the "login" field.
@@ -91,7 +91,7 @@ func (ghu *GitHubUser) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghu struct {
-		ID       string `json:"id,omitempty"`
+		ID       int    `json:"id,omitempty"`
 		GithubID int    `json:"github_id,omitempty"`
 		Login    string `json:"login,omitempty"`
 		Email    string `json:"email,omitempty"`
@@ -173,7 +173,7 @@ func (ghu *GitHubUsers) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanghu []struct {
-		ID       string `json:"id,omitempty"`
+		ID       int    `json:"id,omitempty"`
 		GithubID int    `json:"github_id,omitempty"`
 		Login    string `json:"login,omitempty"`
 		Email    string `json:"email,omitempty"`

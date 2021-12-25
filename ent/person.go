@@ -14,7 +14,7 @@ import (
 type Person struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Name holds the value of the "name" field.
@@ -56,7 +56,7 @@ func (pe *Person) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanpe struct {
-		ID                   string `json:"id,omitempty"`
+		ID                   int    `json:"id,omitempty"`
 		Email                string `json:"email,omitempty"`
 		Name                 string `json:"name,omitempty"`
 		IsGiantSwarmEmployee bool   `json:"is_giant_swarm_employee,omitempty"`
@@ -119,7 +119,7 @@ func (pe *Persons) FromResponse(res *gremlin.Response) error {
 		return err
 	}
 	var scanpe []struct {
-		ID                   string `json:"id,omitempty"`
+		ID                   int    `json:"id,omitempty"`
 		Email                string `json:"email,omitempty"`
 		Name                 string `json:"name,omitempty"`
 		IsGiantSwarmEmployee bool   `json:"is_giant_swarm_employee,omitempty"`

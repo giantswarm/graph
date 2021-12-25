@@ -138,14 +138,14 @@ func (ghiu *GitHubIssueUpdate) SetAuthorAssociation(s string) *GitHubIssueUpdate
 }
 
 // AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by IDs.
-func (ghiu *GitHubIssueUpdate) AddAssigneeIDs(ids ...string) *GitHubIssueUpdate {
+func (ghiu *GitHubIssueUpdate) AddAssigneeIDs(ids ...int) *GitHubIssueUpdate {
 	ghiu.mutation.AddAssigneeIDs(ids...)
 	return ghiu
 }
 
 // AddAssignees adds the "assignees" edges to the GitHubUser entity.
 func (ghiu *GitHubIssueUpdate) AddAssignees(g ...*GitHubUser) *GitHubIssueUpdate {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -153,7 +153,7 @@ func (ghiu *GitHubIssueUpdate) AddAssignees(g ...*GitHubUser) *GitHubIssueUpdate
 }
 
 // SetAuthorID sets the "author" edge to the GitHubUser entity by ID.
-func (ghiu *GitHubIssueUpdate) SetAuthorID(id string) *GitHubIssueUpdate {
+func (ghiu *GitHubIssueUpdate) SetAuthorID(id int) *GitHubIssueUpdate {
 	ghiu.mutation.SetAuthorID(id)
 	return ghiu
 }
@@ -164,13 +164,13 @@ func (ghiu *GitHubIssueUpdate) SetAuthor(g *GitHubUser) *GitHubIssueUpdate {
 }
 
 // SetClosedByID sets the "closed_by" edge to the GitHubUser entity by ID.
-func (ghiu *GitHubIssueUpdate) SetClosedByID(id string) *GitHubIssueUpdate {
+func (ghiu *GitHubIssueUpdate) SetClosedByID(id int) *GitHubIssueUpdate {
 	ghiu.mutation.SetClosedByID(id)
 	return ghiu
 }
 
 // SetNillableClosedByID sets the "closed_by" edge to the GitHubUser entity by ID if the given value is not nil.
-func (ghiu *GitHubIssueUpdate) SetNillableClosedByID(id *string) *GitHubIssueUpdate {
+func (ghiu *GitHubIssueUpdate) SetNillableClosedByID(id *int) *GitHubIssueUpdate {
 	if id != nil {
 		ghiu = ghiu.SetClosedByID(*id)
 	}
@@ -194,14 +194,14 @@ func (ghiu *GitHubIssueUpdate) ClearAssignees() *GitHubIssueUpdate {
 }
 
 // RemoveAssigneeIDs removes the "assignees" edge to GitHubUser entities by IDs.
-func (ghiu *GitHubIssueUpdate) RemoveAssigneeIDs(ids ...string) *GitHubIssueUpdate {
+func (ghiu *GitHubIssueUpdate) RemoveAssigneeIDs(ids ...int) *GitHubIssueUpdate {
 	ghiu.mutation.RemoveAssigneeIDs(ids...)
 	return ghiu
 }
 
 // RemoveAssignees removes "assignees" edges to GitHubUser entities.
 func (ghiu *GitHubIssueUpdate) RemoveAssignees(g ...*GitHubUser) *GitHubIssueUpdate {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -569,14 +569,14 @@ func (ghiuo *GitHubIssueUpdateOne) SetAuthorAssociation(s string) *GitHubIssueUp
 }
 
 // AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by IDs.
-func (ghiuo *GitHubIssueUpdateOne) AddAssigneeIDs(ids ...string) *GitHubIssueUpdateOne {
+func (ghiuo *GitHubIssueUpdateOne) AddAssigneeIDs(ids ...int) *GitHubIssueUpdateOne {
 	ghiuo.mutation.AddAssigneeIDs(ids...)
 	return ghiuo
 }
 
 // AddAssignees adds the "assignees" edges to the GitHubUser entity.
 func (ghiuo *GitHubIssueUpdateOne) AddAssignees(g ...*GitHubUser) *GitHubIssueUpdateOne {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -584,7 +584,7 @@ func (ghiuo *GitHubIssueUpdateOne) AddAssignees(g ...*GitHubUser) *GitHubIssueUp
 }
 
 // SetAuthorID sets the "author" edge to the GitHubUser entity by ID.
-func (ghiuo *GitHubIssueUpdateOne) SetAuthorID(id string) *GitHubIssueUpdateOne {
+func (ghiuo *GitHubIssueUpdateOne) SetAuthorID(id int) *GitHubIssueUpdateOne {
 	ghiuo.mutation.SetAuthorID(id)
 	return ghiuo
 }
@@ -595,13 +595,13 @@ func (ghiuo *GitHubIssueUpdateOne) SetAuthor(g *GitHubUser) *GitHubIssueUpdateOn
 }
 
 // SetClosedByID sets the "closed_by" edge to the GitHubUser entity by ID.
-func (ghiuo *GitHubIssueUpdateOne) SetClosedByID(id string) *GitHubIssueUpdateOne {
+func (ghiuo *GitHubIssueUpdateOne) SetClosedByID(id int) *GitHubIssueUpdateOne {
 	ghiuo.mutation.SetClosedByID(id)
 	return ghiuo
 }
 
 // SetNillableClosedByID sets the "closed_by" edge to the GitHubUser entity by ID if the given value is not nil.
-func (ghiuo *GitHubIssueUpdateOne) SetNillableClosedByID(id *string) *GitHubIssueUpdateOne {
+func (ghiuo *GitHubIssueUpdateOne) SetNillableClosedByID(id *int) *GitHubIssueUpdateOne {
 	if id != nil {
 		ghiuo = ghiuo.SetClosedByID(*id)
 	}
@@ -625,14 +625,14 @@ func (ghiuo *GitHubIssueUpdateOne) ClearAssignees() *GitHubIssueUpdateOne {
 }
 
 // RemoveAssigneeIDs removes the "assignees" edge to GitHubUser entities by IDs.
-func (ghiuo *GitHubIssueUpdateOne) RemoveAssigneeIDs(ids ...string) *GitHubIssueUpdateOne {
+func (ghiuo *GitHubIssueUpdateOne) RemoveAssigneeIDs(ids ...int) *GitHubIssueUpdateOne {
 	ghiuo.mutation.RemoveAssigneeIDs(ids...)
 	return ghiuo
 }
 
 // RemoveAssignees removes "assignees" edges to GitHubUser entities.
 func (ghiuo *GitHubIssueUpdateOne) RemoveAssignees(g ...*GitHubUser) *GitHubIssueUpdateOne {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -786,7 +786,7 @@ func (ghiuo *GitHubIssueUpdateOne) gremlinSave(ctx context.Context) (*GitHubIssu
 	return ghi, nil
 }
 
-func (ghiuo *GitHubIssueUpdateOne) gremlin(id string) *dsl.Traversal {
+func (ghiuo *GitHubIssueUpdateOne) gremlin(id int) *dsl.Traversal {
 	type constraint struct {
 		pred *dsl.Traversal // constraint predicate.
 		test *dsl.Traversal // test matches and its constant.

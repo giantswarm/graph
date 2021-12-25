@@ -48,21 +48,15 @@ func (ghuc *GitHubUserCreate) SetName(s string) *GitHubUserCreate {
 	return ghuc
 }
 
-// SetID sets the "id" field.
-func (ghuc *GitHubUserCreate) SetID(s string) *GitHubUserCreate {
-	ghuc.mutation.SetID(s)
-	return ghuc
-}
-
 // AddCreatedIssueIDs adds the "created_issues" edge to the GitHubIssue entity by IDs.
-func (ghuc *GitHubUserCreate) AddCreatedIssueIDs(ids ...string) *GitHubUserCreate {
+func (ghuc *GitHubUserCreate) AddCreatedIssueIDs(ids ...int) *GitHubUserCreate {
 	ghuc.mutation.AddCreatedIssueIDs(ids...)
 	return ghuc
 }
 
 // AddCreatedIssues adds the "created_issues" edges to the GitHubIssue entity.
 func (ghuc *GitHubUserCreate) AddCreatedIssues(g ...*GitHubIssue) *GitHubUserCreate {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -70,14 +64,14 @@ func (ghuc *GitHubUserCreate) AddCreatedIssues(g ...*GitHubIssue) *GitHubUserCre
 }
 
 // AddClosedIssueIDs adds the "closed_issues" edge to the GitHubIssue entity by IDs.
-func (ghuc *GitHubUserCreate) AddClosedIssueIDs(ids ...string) *GitHubUserCreate {
+func (ghuc *GitHubUserCreate) AddClosedIssueIDs(ids ...int) *GitHubUserCreate {
 	ghuc.mutation.AddClosedIssueIDs(ids...)
 	return ghuc
 }
 
 // AddClosedIssues adds the "closed_issues" edges to the GitHubIssue entity.
 func (ghuc *GitHubUserCreate) AddClosedIssues(g ...*GitHubIssue) *GitHubUserCreate {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -85,13 +79,13 @@ func (ghuc *GitHubUserCreate) AddClosedIssues(g ...*GitHubIssue) *GitHubUserCrea
 }
 
 // SetPersonID sets the "person" edge to the Person entity by ID.
-func (ghuc *GitHubUserCreate) SetPersonID(id string) *GitHubUserCreate {
+func (ghuc *GitHubUserCreate) SetPersonID(id int) *GitHubUserCreate {
 	ghuc.mutation.SetPersonID(id)
 	return ghuc
 }
 
 // SetNillablePersonID sets the "person" edge to the Person entity by ID if the given value is not nil.
-func (ghuc *GitHubUserCreate) SetNillablePersonID(id *string) *GitHubUserCreate {
+func (ghuc *GitHubUserCreate) SetNillablePersonID(id *int) *GitHubUserCreate {
 	if id != nil {
 		ghuc = ghuc.SetPersonID(*id)
 	}
@@ -104,14 +98,14 @@ func (ghuc *GitHubUserCreate) SetPerson(p *Person) *GitHubUserCreate {
 }
 
 // AddAssignedIssueIDs adds the "assigned_issues" edge to the GitHubIssue entity by IDs.
-func (ghuc *GitHubUserCreate) AddAssignedIssueIDs(ids ...string) *GitHubUserCreate {
+func (ghuc *GitHubUserCreate) AddAssignedIssueIDs(ids ...int) *GitHubUserCreate {
 	ghuc.mutation.AddAssignedIssueIDs(ids...)
 	return ghuc
 }
 
 // AddAssignedIssues adds the "assigned_issues" edges to the GitHubIssue entity.
 func (ghuc *GitHubUserCreate) AddAssignedIssues(g ...*GitHubIssue) *GitHubUserCreate {
-	ids := make([]string, len(g))
+	ids := make([]int, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -205,11 +199,6 @@ func (ghuc *GitHubUserCreate) check() error {
 	if _, ok := ghuc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
 	}
-	if v, ok := ghuc.mutation.ID(); ok {
-		if err := githubuser.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -231,68 +220,112 @@ func (ghuc *GitHubUserCreate) gremlinSave(ctx context.Context) (*GitHubUser, err
 
 func (ghuc *GitHubUserCreate) gremlin() *dsl.Traversal {
 	type constraint struct {
-		pred *dsl.Traversal // constraint predicate.
-		test *dsl.Traversal // test matches and its constant.
+		firstQueryPred *dsl.Traversal // constraint predicate.
+		pred           *dsl.Traversal // constraint predicate.
+		test           *dsl.Traversal // test matches and its constant.
 	}
 	constraints := make([]*constraint, 0, 6)
-	v := g.AddV(githubuser.Label)
-	if id, ok := ghuc.mutation.ID(); ok {
-		v.Property(dsl.ID, id)
+	createTraversal := func(constraints []*constraint, traversalFuncs []func(*dsl.Traversal)) *dsl.Traversal {
+		var v *dsl.Traversal
+		if len(constraints) > 0 {
+			// We will use coalesce, therefore AddV will be child traversal, so we need __ here
+			v = __.New().AddV(githubuser.Label)
+		} else {
+			v = g.AddV(githubuser.Label)
+		}
+		for _, tf := range traversalFuncs {
+			tf(v)
+		}
+		return v
 	}
+	traversalFuncs := []func(*dsl.Traversal){}
 	if value, ok := ghuc.mutation.GithubID(); ok {
 		constraints = append(constraints, &constraint{
-			pred: g.V().Has(githubuser.Label, githubuser.FieldGithubID, value).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldGithubID, value)),
+			firstQueryPred: g.V().Has(githubuser.Label, githubuser.FieldGithubID, value).Count(),
+			pred:           __.V().Has(githubuser.Label, githubuser.FieldGithubID, value).Count(),
+			test:           __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldGithubID, value)),
 		})
-		v.Property(dsl.Single, githubuser.FieldGithubID, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubuser.FieldGithubID, value)
+		})
 	}
 	if value, ok := ghuc.mutation.Login(); ok {
 		constraints = append(constraints, &constraint{
-			pred: g.V().Has(githubuser.Label, githubuser.FieldLogin, value).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldLogin, value)),
+			firstQueryPred: g.V().Has(githubuser.Label, githubuser.FieldLogin, value).Count(),
+			pred:           __.V().Has(githubuser.Label, githubuser.FieldLogin, value).Count(),
+			test:           __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldLogin, value)),
 		})
-		v.Property(dsl.Single, githubuser.FieldLogin, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubuser.FieldLogin, value)
+		})
 	}
 	if value, ok := ghuc.mutation.Email(); ok {
 		constraints = append(constraints, &constraint{
-			pred: g.V().Has(githubuser.Label, githubuser.FieldEmail, value).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldEmail, value)),
+			firstQueryPred: g.V().Has(githubuser.Label, githubuser.FieldEmail, value).Count(),
+			pred:           __.V().Has(githubuser.Label, githubuser.FieldEmail, value).Count(),
+			test:           __.Is(p.NEQ(0)).Constant(NewErrUniqueField(githubuser.Label, githubuser.FieldEmail, value)),
 		})
-		v.Property(dsl.Single, githubuser.FieldEmail, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubuser.FieldEmail, value)
+		})
 	}
 	if value, ok := ghuc.mutation.Name(); ok {
-		v.Property(dsl.Single, githubuser.FieldName, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, githubuser.FieldName, value)
+		})
 	}
 	for _, id := range ghuc.mutation.CreatedIssuesIDs() {
-		v.AddE(githubuser.CreatedIssuesLabel).To(g.V(id)).OutV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(githubuser.CreatedIssuesLabel).To(g.V(id)).OutV()
+		})
 		constraints = append(constraints, &constraint{
 			pred: g.E().HasLabel(githubuser.CreatedIssuesLabel).InV().HasID(id).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.CreatedIssuesLabel, id)),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.CreatedIssuesLabel, string(id))),
 		})
 	}
 	for _, id := range ghuc.mutation.ClosedIssuesIDs() {
-		v.AddE(githubuser.ClosedIssuesLabel).To(g.V(id)).OutV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(githubuser.ClosedIssuesLabel).To(g.V(id)).OutV()
+		})
 		constraints = append(constraints, &constraint{
 			pred: g.E().HasLabel(githubuser.ClosedIssuesLabel).InV().HasID(id).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.ClosedIssuesLabel, id)),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, githubuser.ClosedIssuesLabel, string(id))),
 		})
 	}
 	for _, id := range ghuc.mutation.PersonIDs() {
-		v.AddE(person.GithubAccountLabel).From(g.V(id)).InV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(person.GithubAccountLabel).From(g.V(id)).InV()
+		})
 		constraints = append(constraints, &constraint{
 			pred: g.E().HasLabel(person.GithubAccountLabel).OutV().HasID(id).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, person.GithubAccountLabel, id)),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(githubuser.Label, person.GithubAccountLabel, string(id))),
 		})
 	}
 	for _, id := range ghuc.mutation.AssignedIssuesIDs() {
-		v.AddE(githubissue.AssigneesLabel).From(g.V(id)).InV()
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(githubissue.AssigneesLabel).From(g.V(id)).InV()
+		})
 	}
+	v := createTraversal(constraints, traversalFuncs)
 	if len(constraints) == 0 {
 		return v.ValueMap(true)
 	}
-	tr := constraints[0].pred.Coalesce(constraints[0].test, v.ValueMap(true))
-	for _, cr := range constraints[1:] {
-		tr = cr.pred.Coalesce(cr.test, tr)
+	var tr *dsl.Traversal
+	if len(constraints) == 1 {
+		// use the TraversalSource (g) to start the traversal
+		tr = constraints[0].firstQueryPred.Coalesce(constraints[0].test, v.ValueMap(true))
+	} else {
+		// use the __ class rather than a TraversalSource to construct the child traversal anonymously
+		tr = constraints[0].pred.Coalesce(constraints[0].test, v.ValueMap(true))
+	}
+	for i, cr := range constraints[1:] {
+		if i == len(constraints[1:])-1 && cr.firstQueryPred != nil {
+			// use the TraversalSource (g) to start the traversal
+			tr = cr.firstQueryPred.Coalesce(cr.test, tr)
+		} else {
+			// use the __ class rather than a TraversalSource to construct the child traversal anonymously
+			tr = cr.pred.Coalesce(cr.test, tr)
+		}
 	}
 	return tr
 }

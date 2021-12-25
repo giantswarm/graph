@@ -265,7 +265,7 @@ type GitHubIssueMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *string
+	id                 *int
 	github_id          *int
 	addgithub_id       *int
 	number             *int
@@ -283,12 +283,12 @@ type GitHubIssueMutation struct {
 	closed_at          *string
 	author_association *string
 	clearedFields      map[string]struct{}
-	assignees          map[string]struct{}
-	removedassignees   map[string]struct{}
+	assignees          map[int]struct{}
+	removedassignees   map[int]struct{}
 	clearedassignees   bool
-	author             *string
+	author             *int
 	clearedauthor      bool
-	closed_by          *string
+	closed_by          *int
 	clearedclosed_by   bool
 	done               bool
 	oldValue           func(context.Context) (*GitHubIssue, error)
@@ -315,7 +315,7 @@ func newGitHubIssueMutation(c config, op Op, opts ...githubissueOption) *GitHubI
 }
 
 // withGitHubIssueID sets the ID field of the mutation.
-func withGitHubIssueID(id string) githubissueOption {
+func withGitHubIssueID(id int) githubissueOption {
 	return func(m *GitHubIssueMutation) {
 		var (
 			err   error
@@ -365,15 +365,9 @@ func (m GitHubIssueMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of GitHubIssue entities.
-func (m *GitHubIssueMutation) SetID(id string) {
-	m.id = &id
-}
-
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GitHubIssueMutation) ID() (id string, exists bool) {
+func (m *GitHubIssueMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -909,9 +903,9 @@ func (m *GitHubIssueMutation) ResetAuthorAssociation() {
 }
 
 // AddAssigneeIDs adds the "assignees" edge to the GitHubUser entity by ids.
-func (m *GitHubIssueMutation) AddAssigneeIDs(ids ...string) {
+func (m *GitHubIssueMutation) AddAssigneeIDs(ids ...int) {
 	if m.assignees == nil {
-		m.assignees = make(map[string]struct{})
+		m.assignees = make(map[int]struct{})
 	}
 	for i := range ids {
 		m.assignees[ids[i]] = struct{}{}
@@ -929,9 +923,9 @@ func (m *GitHubIssueMutation) AssigneesCleared() bool {
 }
 
 // RemoveAssigneeIDs removes the "assignees" edge to the GitHubUser entity by IDs.
-func (m *GitHubIssueMutation) RemoveAssigneeIDs(ids ...string) {
+func (m *GitHubIssueMutation) RemoveAssigneeIDs(ids ...int) {
 	if m.removedassignees == nil {
-		m.removedassignees = make(map[string]struct{})
+		m.removedassignees = make(map[int]struct{})
 	}
 	for i := range ids {
 		delete(m.assignees, ids[i])
@@ -940,7 +934,7 @@ func (m *GitHubIssueMutation) RemoveAssigneeIDs(ids ...string) {
 }
 
 // RemovedAssignees returns the removed IDs of the "assignees" edge to the GitHubUser entity.
-func (m *GitHubIssueMutation) RemovedAssigneesIDs() (ids []string) {
+func (m *GitHubIssueMutation) RemovedAssigneesIDs() (ids []int) {
 	for id := range m.removedassignees {
 		ids = append(ids, id)
 	}
@@ -948,7 +942,7 @@ func (m *GitHubIssueMutation) RemovedAssigneesIDs() (ids []string) {
 }
 
 // AssigneesIDs returns the "assignees" edge IDs in the mutation.
-func (m *GitHubIssueMutation) AssigneesIDs() (ids []string) {
+func (m *GitHubIssueMutation) AssigneesIDs() (ids []int) {
 	for id := range m.assignees {
 		ids = append(ids, id)
 	}
@@ -963,7 +957,7 @@ func (m *GitHubIssueMutation) ResetAssignees() {
 }
 
 // SetAuthorID sets the "author" edge to the GitHubUser entity by id.
-func (m *GitHubIssueMutation) SetAuthorID(id string) {
+func (m *GitHubIssueMutation) SetAuthorID(id int) {
 	m.author = &id
 }
 
@@ -978,7 +972,7 @@ func (m *GitHubIssueMutation) AuthorCleared() bool {
 }
 
 // AuthorID returns the "author" edge ID in the mutation.
-func (m *GitHubIssueMutation) AuthorID() (id string, exists bool) {
+func (m *GitHubIssueMutation) AuthorID() (id int, exists bool) {
 	if m.author != nil {
 		return *m.author, true
 	}
@@ -988,7 +982,7 @@ func (m *GitHubIssueMutation) AuthorID() (id string, exists bool) {
 // AuthorIDs returns the "author" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // AuthorID instead. It exists only for internal usage by the builders.
-func (m *GitHubIssueMutation) AuthorIDs() (ids []string) {
+func (m *GitHubIssueMutation) AuthorIDs() (ids []int) {
 	if id := m.author; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1002,7 +996,7 @@ func (m *GitHubIssueMutation) ResetAuthor() {
 }
 
 // SetClosedByID sets the "closed_by" edge to the GitHubUser entity by id.
-func (m *GitHubIssueMutation) SetClosedByID(id string) {
+func (m *GitHubIssueMutation) SetClosedByID(id int) {
 	m.closed_by = &id
 }
 
@@ -1017,7 +1011,7 @@ func (m *GitHubIssueMutation) ClosedByCleared() bool {
 }
 
 // ClosedByID returns the "closed_by" edge ID in the mutation.
-func (m *GitHubIssueMutation) ClosedByID() (id string, exists bool) {
+func (m *GitHubIssueMutation) ClosedByID() (id int, exists bool) {
 	if m.closed_by != nil {
 		return *m.closed_by, true
 	}
@@ -1027,7 +1021,7 @@ func (m *GitHubIssueMutation) ClosedByID() (id string, exists bool) {
 // ClosedByIDs returns the "closed_by" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ClosedByID instead. It exists only for internal usage by the builders.
-func (m *GitHubIssueMutation) ClosedByIDs() (ids []string) {
+func (m *GitHubIssueMutation) ClosedByIDs() (ids []int) {
 	if id := m.closed_by; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1524,23 +1518,23 @@ type GitHubUserMutation struct {
 	config
 	op                     Op
 	typ                    string
-	id                     *string
+	id                     *int
 	github_id              *int
 	addgithub_id           *int
 	login                  *string
 	email                  *string
 	name                   *string
 	clearedFields          map[string]struct{}
-	created_issues         map[string]struct{}
-	removedcreated_issues  map[string]struct{}
+	created_issues         map[int]struct{}
+	removedcreated_issues  map[int]struct{}
 	clearedcreated_issues  bool
-	closed_issues          map[string]struct{}
-	removedclosed_issues   map[string]struct{}
+	closed_issues          map[int]struct{}
+	removedclosed_issues   map[int]struct{}
 	clearedclosed_issues   bool
-	person                 *string
+	person                 *int
 	clearedperson          bool
-	assigned_issues        map[string]struct{}
-	removedassigned_issues map[string]struct{}
+	assigned_issues        map[int]struct{}
+	removedassigned_issues map[int]struct{}
 	clearedassigned_issues bool
 	done                   bool
 	oldValue               func(context.Context) (*GitHubUser, error)
@@ -1567,7 +1561,7 @@ func newGitHubUserMutation(c config, op Op, opts ...githubuserOption) *GitHubUse
 }
 
 // withGitHubUserID sets the ID field of the mutation.
-func withGitHubUserID(id string) githubuserOption {
+func withGitHubUserID(id int) githubuserOption {
 	return func(m *GitHubUserMutation) {
 		var (
 			err   error
@@ -1617,15 +1611,9 @@ func (m GitHubUserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of GitHubUser entities.
-func (m *GitHubUserMutation) SetID(id string) {
-	m.id = &id
-}
-
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GitHubUserMutation) ID() (id string, exists bool) {
+func (m *GitHubUserMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1797,9 +1785,9 @@ func (m *GitHubUserMutation) ResetName() {
 }
 
 // AddCreatedIssueIDs adds the "created_issues" edge to the GitHubIssue entity by ids.
-func (m *GitHubUserMutation) AddCreatedIssueIDs(ids ...string) {
+func (m *GitHubUserMutation) AddCreatedIssueIDs(ids ...int) {
 	if m.created_issues == nil {
-		m.created_issues = make(map[string]struct{})
+		m.created_issues = make(map[int]struct{})
 	}
 	for i := range ids {
 		m.created_issues[ids[i]] = struct{}{}
@@ -1817,9 +1805,9 @@ func (m *GitHubUserMutation) CreatedIssuesCleared() bool {
 }
 
 // RemoveCreatedIssueIDs removes the "created_issues" edge to the GitHubIssue entity by IDs.
-func (m *GitHubUserMutation) RemoveCreatedIssueIDs(ids ...string) {
+func (m *GitHubUserMutation) RemoveCreatedIssueIDs(ids ...int) {
 	if m.removedcreated_issues == nil {
-		m.removedcreated_issues = make(map[string]struct{})
+		m.removedcreated_issues = make(map[int]struct{})
 	}
 	for i := range ids {
 		delete(m.created_issues, ids[i])
@@ -1828,7 +1816,7 @@ func (m *GitHubUserMutation) RemoveCreatedIssueIDs(ids ...string) {
 }
 
 // RemovedCreatedIssues returns the removed IDs of the "created_issues" edge to the GitHubIssue entity.
-func (m *GitHubUserMutation) RemovedCreatedIssuesIDs() (ids []string) {
+func (m *GitHubUserMutation) RemovedCreatedIssuesIDs() (ids []int) {
 	for id := range m.removedcreated_issues {
 		ids = append(ids, id)
 	}
@@ -1836,7 +1824,7 @@ func (m *GitHubUserMutation) RemovedCreatedIssuesIDs() (ids []string) {
 }
 
 // CreatedIssuesIDs returns the "created_issues" edge IDs in the mutation.
-func (m *GitHubUserMutation) CreatedIssuesIDs() (ids []string) {
+func (m *GitHubUserMutation) CreatedIssuesIDs() (ids []int) {
 	for id := range m.created_issues {
 		ids = append(ids, id)
 	}
@@ -1851,9 +1839,9 @@ func (m *GitHubUserMutation) ResetCreatedIssues() {
 }
 
 // AddClosedIssueIDs adds the "closed_issues" edge to the GitHubIssue entity by ids.
-func (m *GitHubUserMutation) AddClosedIssueIDs(ids ...string) {
+func (m *GitHubUserMutation) AddClosedIssueIDs(ids ...int) {
 	if m.closed_issues == nil {
-		m.closed_issues = make(map[string]struct{})
+		m.closed_issues = make(map[int]struct{})
 	}
 	for i := range ids {
 		m.closed_issues[ids[i]] = struct{}{}
@@ -1871,9 +1859,9 @@ func (m *GitHubUserMutation) ClosedIssuesCleared() bool {
 }
 
 // RemoveClosedIssueIDs removes the "closed_issues" edge to the GitHubIssue entity by IDs.
-func (m *GitHubUserMutation) RemoveClosedIssueIDs(ids ...string) {
+func (m *GitHubUserMutation) RemoveClosedIssueIDs(ids ...int) {
 	if m.removedclosed_issues == nil {
-		m.removedclosed_issues = make(map[string]struct{})
+		m.removedclosed_issues = make(map[int]struct{})
 	}
 	for i := range ids {
 		delete(m.closed_issues, ids[i])
@@ -1882,7 +1870,7 @@ func (m *GitHubUserMutation) RemoveClosedIssueIDs(ids ...string) {
 }
 
 // RemovedClosedIssues returns the removed IDs of the "closed_issues" edge to the GitHubIssue entity.
-func (m *GitHubUserMutation) RemovedClosedIssuesIDs() (ids []string) {
+func (m *GitHubUserMutation) RemovedClosedIssuesIDs() (ids []int) {
 	for id := range m.removedclosed_issues {
 		ids = append(ids, id)
 	}
@@ -1890,7 +1878,7 @@ func (m *GitHubUserMutation) RemovedClosedIssuesIDs() (ids []string) {
 }
 
 // ClosedIssuesIDs returns the "closed_issues" edge IDs in the mutation.
-func (m *GitHubUserMutation) ClosedIssuesIDs() (ids []string) {
+func (m *GitHubUserMutation) ClosedIssuesIDs() (ids []int) {
 	for id := range m.closed_issues {
 		ids = append(ids, id)
 	}
@@ -1905,7 +1893,7 @@ func (m *GitHubUserMutation) ResetClosedIssues() {
 }
 
 // SetPersonID sets the "person" edge to the Person entity by id.
-func (m *GitHubUserMutation) SetPersonID(id string) {
+func (m *GitHubUserMutation) SetPersonID(id int) {
 	m.person = &id
 }
 
@@ -1920,7 +1908,7 @@ func (m *GitHubUserMutation) PersonCleared() bool {
 }
 
 // PersonID returns the "person" edge ID in the mutation.
-func (m *GitHubUserMutation) PersonID() (id string, exists bool) {
+func (m *GitHubUserMutation) PersonID() (id int, exists bool) {
 	if m.person != nil {
 		return *m.person, true
 	}
@@ -1930,7 +1918,7 @@ func (m *GitHubUserMutation) PersonID() (id string, exists bool) {
 // PersonIDs returns the "person" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // PersonID instead. It exists only for internal usage by the builders.
-func (m *GitHubUserMutation) PersonIDs() (ids []string) {
+func (m *GitHubUserMutation) PersonIDs() (ids []int) {
 	if id := m.person; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1944,9 +1932,9 @@ func (m *GitHubUserMutation) ResetPerson() {
 }
 
 // AddAssignedIssueIDs adds the "assigned_issues" edge to the GitHubIssue entity by ids.
-func (m *GitHubUserMutation) AddAssignedIssueIDs(ids ...string) {
+func (m *GitHubUserMutation) AddAssignedIssueIDs(ids ...int) {
 	if m.assigned_issues == nil {
-		m.assigned_issues = make(map[string]struct{})
+		m.assigned_issues = make(map[int]struct{})
 	}
 	for i := range ids {
 		m.assigned_issues[ids[i]] = struct{}{}
@@ -1964,9 +1952,9 @@ func (m *GitHubUserMutation) AssignedIssuesCleared() bool {
 }
 
 // RemoveAssignedIssueIDs removes the "assigned_issues" edge to the GitHubIssue entity by IDs.
-func (m *GitHubUserMutation) RemoveAssignedIssueIDs(ids ...string) {
+func (m *GitHubUserMutation) RemoveAssignedIssueIDs(ids ...int) {
 	if m.removedassigned_issues == nil {
-		m.removedassigned_issues = make(map[string]struct{})
+		m.removedassigned_issues = make(map[int]struct{})
 	}
 	for i := range ids {
 		delete(m.assigned_issues, ids[i])
@@ -1975,7 +1963,7 @@ func (m *GitHubUserMutation) RemoveAssignedIssueIDs(ids ...string) {
 }
 
 // RemovedAssignedIssues returns the removed IDs of the "assigned_issues" edge to the GitHubIssue entity.
-func (m *GitHubUserMutation) RemovedAssignedIssuesIDs() (ids []string) {
+func (m *GitHubUserMutation) RemovedAssignedIssuesIDs() (ids []int) {
 	for id := range m.removedassigned_issues {
 		ids = append(ids, id)
 	}
@@ -1983,7 +1971,7 @@ func (m *GitHubUserMutation) RemovedAssignedIssuesIDs() (ids []string) {
 }
 
 // AssignedIssuesIDs returns the "assigned_issues" edge IDs in the mutation.
-func (m *GitHubUserMutation) AssignedIssuesIDs() (ids []string) {
+func (m *GitHubUserMutation) AssignedIssuesIDs() (ids []int) {
 	for id := range m.assigned_issues {
 		ids = append(ids, id)
 	}
@@ -2338,12 +2326,12 @@ type PersonMutation struct {
 	config
 	op                    Op
 	typ                   string
-	id                    *string
+	id                    *int
 	email                 *string
 	name                  *string
 	isGiantSwarmEmployee  *bool
 	clearedFields         map[string]struct{}
-	github_account        *string
+	github_account        *int
 	clearedgithub_account bool
 	done                  bool
 	oldValue              func(context.Context) (*Person, error)
@@ -2370,7 +2358,7 @@ func newPersonMutation(c config, op Op, opts ...personOption) *PersonMutation {
 }
 
 // withPersonID sets the ID field of the mutation.
-func withPersonID(id string) personOption {
+func withPersonID(id int) personOption {
 	return func(m *PersonMutation) {
 		var (
 			err   error
@@ -2420,15 +2408,9 @@ func (m PersonMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Person entities.
-func (m *PersonMutation) SetID(id string) {
-	m.id = &id
-}
-
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PersonMutation) ID() (id string, exists bool) {
+func (m *PersonMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2544,7 +2526,7 @@ func (m *PersonMutation) ResetIsGiantSwarmEmployee() {
 }
 
 // SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by id.
-func (m *PersonMutation) SetGithubAccountID(id string) {
+func (m *PersonMutation) SetGithubAccountID(id int) {
 	m.github_account = &id
 }
 
@@ -2559,7 +2541,7 @@ func (m *PersonMutation) GithubAccountCleared() bool {
 }
 
 // GithubAccountID returns the "github_account" edge ID in the mutation.
-func (m *PersonMutation) GithubAccountID() (id string, exists bool) {
+func (m *PersonMutation) GithubAccountID() (id int, exists bool) {
 	if m.github_account != nil {
 		return *m.github_account, true
 	}
@@ -2569,7 +2551,7 @@ func (m *PersonMutation) GithubAccountID() (id string, exists bool) {
 // GithubAccountIDs returns the "github_account" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // GithubAccountID instead. It exists only for internal usage by the builders.
-func (m *PersonMutation) GithubAccountIDs() (ids []string) {
+func (m *PersonMutation) GithubAccountIDs() (ids []int) {
 	if id := m.github_account; id != nil {
 		ids = append(ids, *id)
 	}

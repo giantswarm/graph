@@ -40,20 +40,14 @@ func (pc *PersonCreate) SetIsGiantSwarmEmployee(b bool) *PersonCreate {
 	return pc
 }
 
-// SetID sets the "id" field.
-func (pc *PersonCreate) SetID(s string) *PersonCreate {
-	pc.mutation.SetID(s)
-	return pc
-}
-
 // SetGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID.
-func (pc *PersonCreate) SetGithubAccountID(id string) *PersonCreate {
+func (pc *PersonCreate) SetGithubAccountID(id int) *PersonCreate {
 	pc.mutation.SetGithubAccountID(id)
 	return pc
 }
 
 // SetNillableGithubAccountID sets the "github_account" edge to the GitHubUser entity by ID if the given value is not nil.
-func (pc *PersonCreate) SetNillableGithubAccountID(id *string) *PersonCreate {
+func (pc *PersonCreate) SetNillableGithubAccountID(id *int) *PersonCreate {
 	if id != nil {
 		pc = pc.SetGithubAccountID(*id)
 	}
@@ -165,40 +159,74 @@ func (pc *PersonCreate) gremlinSave(ctx context.Context) (*Person, error) {
 
 func (pc *PersonCreate) gremlin() *dsl.Traversal {
 	type constraint struct {
-		pred *dsl.Traversal // constraint predicate.
-		test *dsl.Traversal // test matches and its constant.
+		firstQueryPred *dsl.Traversal // constraint predicate.
+		pred           *dsl.Traversal // constraint predicate.
+		test           *dsl.Traversal // test matches and its constant.
 	}
 	constraints := make([]*constraint, 0, 2)
-	v := g.AddV(person.Label)
-	if id, ok := pc.mutation.ID(); ok {
-		v.Property(dsl.ID, id)
+	createTraversal := func(constraints []*constraint, traversalFuncs []func(*dsl.Traversal)) *dsl.Traversal {
+		var v *dsl.Traversal
+		if len(constraints) > 0 {
+			// We will use coalesce, therefore AddV will be child traversal, so we need __ here
+			v = __.New().AddV(person.Label)
+		} else {
+			v = g.AddV(person.Label)
+		}
+		for _, tf := range traversalFuncs {
+			tf(v)
+		}
+		return v
 	}
+	traversalFuncs := []func(*dsl.Traversal){}
 	if value, ok := pc.mutation.Email(); ok {
 		constraints = append(constraints, &constraint{
-			pred: g.V().Has(person.Label, person.FieldEmail, value).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueField(person.Label, person.FieldEmail, value)),
+			firstQueryPred: g.V().Has(person.Label, person.FieldEmail, value).Count(),
+			pred:           __.V().Has(person.Label, person.FieldEmail, value).Count(),
+			test:           __.Is(p.NEQ(0)).Constant(NewErrUniqueField(person.Label, person.FieldEmail, value)),
 		})
-		v.Property(dsl.Single, person.FieldEmail, value)
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, person.FieldEmail, value)
+		})
 	}
 	if value, ok := pc.mutation.Name(); ok {
-		v.Property(dsl.Single, person.FieldName, value)
-	}
-	if value, ok := pc.mutation.IsGiantSwarmEmployee(); ok {
-		v.Property(dsl.Single, person.FieldIsGiantSwarmEmployee, value)
-	}
-	for _, id := range pc.mutation.GithubAccountIDs() {
-		v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
-		constraints = append(constraints, &constraint{
-			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
-			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, id)),
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, person.FieldName, value)
 		})
 	}
+	if value, ok := pc.mutation.IsGiantSwarmEmployee(); ok {
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.Property(dsl.Single, person.FieldIsGiantSwarmEmployee, value)
+		})
+	}
+	for _, id := range pc.mutation.GithubAccountIDs() {
+		traversalFuncs = append(traversalFuncs, func(v *dsl.Traversal) {
+			v.AddE(person.GithubAccountLabel).To(g.V(id)).OutV()
+		})
+		constraints = append(constraints, &constraint{
+			pred: g.E().HasLabel(person.GithubAccountLabel).InV().HasID(id).Count(),
+			test: __.Is(p.NEQ(0)).Constant(NewErrUniqueEdge(person.Label, person.GithubAccountLabel, string(id))),
+		})
+	}
+	v := createTraversal(constraints, traversalFuncs)
 	if len(constraints) == 0 {
 		return v.ValueMap(true)
 	}
-	tr := constraints[0].pred.Coalesce(constraints[0].test, v.ValueMap(true))
-	for _, cr := range constraints[1:] {
-		tr = cr.pred.Coalesce(cr.test, tr)
+	var tr *dsl.Traversal
+	if len(constraints) == 1 {
+		// use the TraversalSource (g) to start the traversal
+		tr = constraints[0].firstQueryPred.Coalesce(constraints[0].test, v.ValueMap(true))
+	} else {
+		// use the __ class rather than a TraversalSource to construct the child traversal anonymously
+		tr = constraints[0].pred.Coalesce(constraints[0].test, v.ValueMap(true))
+	}
+	for i, cr := range constraints[1:] {
+		if i == len(constraints[1:])-1 && cr.firstQueryPred != nil {
+			// use the TraversalSource (g) to start the traversal
+			tr = cr.firstQueryPred.Coalesce(cr.test, tr)
+		} else {
+			// use the __ class rather than a TraversalSource to construct the child traversal anonymously
+			tr = cr.pred.Coalesce(cr.test, tr)
+		}
 	}
 	return tr
 }

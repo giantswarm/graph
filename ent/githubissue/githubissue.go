@@ -68,8 +68,6 @@ var (
 	UpdatedAtValidator func(string) error
 	// ClosedAtValidator is a validator for the "closed_at" field. It is called by the builders before save.
 	ClosedAtValidator func(string) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(string) error
 )
 
 // State defines the type for the "state" enum field.

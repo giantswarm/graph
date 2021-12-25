@@ -14,8 +14,6 @@ type Person struct {
 // Fields of the Person.
 func (Person) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").Unique(),
-
 		field.String("email").Unique(),
 		field.String("name"),
 		field.Bool("isGiantSwarmEmployee"),

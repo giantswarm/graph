@@ -148,8 +148,8 @@ func (ghuq *GitHubUserQuery) FirstX(ctx context.Context) *GitHubUser {
 
 // FirstID returns the first GitHubUser ID from the query.
 // Returns a *NotFoundError when no GitHubUser ID was found.
-func (ghuq *GitHubUserQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ghuq *GitHubUserQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ghuq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -161,7 +161,7 @@ func (ghuq *GitHubUserQuery) FirstID(ctx context.Context) (id string, err error)
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (ghuq *GitHubUserQuery) FirstIDX(ctx context.Context) string {
+func (ghuq *GitHubUserQuery) FirstIDX(ctx context.Context) int {
 	id, err := ghuq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -199,8 +199,8 @@ func (ghuq *GitHubUserQuery) OnlyX(ctx context.Context) *GitHubUser {
 // OnlyID is like Only, but returns the only GitHubUser ID in the query.
 // Returns a *NotSingularError when exactly one GitHubUser ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (ghuq *GitHubUserQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ghuq *GitHubUserQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ghuq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -216,7 +216,7 @@ func (ghuq *GitHubUserQuery) OnlyID(ctx context.Context) (id string, err error) 
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (ghuq *GitHubUserQuery) OnlyIDX(ctx context.Context) string {
+func (ghuq *GitHubUserQuery) OnlyIDX(ctx context.Context) int {
 	id, err := ghuq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -242,8 +242,8 @@ func (ghuq *GitHubUserQuery) AllX(ctx context.Context) []*GitHubUser {
 }
 
 // IDs executes the query and returns a list of GitHubUser IDs.
-func (ghuq *GitHubUserQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ghuq *GitHubUserQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ghuq.Select(githubuser.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (ghuq *GitHubUserQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ghuq *GitHubUserQuery) IDsX(ctx context.Context) []string {
+func (ghuq *GitHubUserQuery) IDsX(ctx context.Context) []int {
 	ids, err := ghuq.IDs(ctx)
 	if err != nil {
 		panic(err)
